@@ -41,6 +41,11 @@ app.use(
   }),
 );
 
+// ── Admin dashboard: serve admin/index.html at /admin and /admin/ ─
+app.get(["/admin", "/admin/"], (_req, res) => {
+  res.sendFile(path.resolve(LUMINA_DIR, "admin", "index.html"));
+});
+
 // ── SSR routes: / and /villa/:slug ───────────────────────────────
 app.use(ssrRouter);
 
