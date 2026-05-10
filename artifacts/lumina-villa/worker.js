@@ -6,27 +6,34 @@
 // (hanya bisa jika belum ada user sama sekali)
 // ================================================================
 
-// ── CONFIG — ganti nilai di bawah sesuai kebutuhan ───────────────
-const SUPABASE_URL    = 'https://bgwkwlrkvbspycqsdeif.supabase.co';
-const SUPABASE_KEY    = 'eyJhbGciOiJIUzxxxxxxxxxxxc';
-const JWT_SECRET      = 'ganti_dengan_string_acak_minimal_32_karakter_disini';
-const GITHUB_TOKEN    = 'xxxxxx';
-const GITHUB_REPO     = 'SAFELFAR05/Up';
-const GITHUB_BRANCH   = 'main';
-const GITHUB_IMG_PATH = 'images/villas';
-const ALLOWED_ORIGIN  = '*';
+// ── CONFIG — dibaca dari Cloudflare Secrets (wrangler secret put) ─
+// Jalankan perintah ini sebelum deploy:
+//   npx wrangler secret put SUPABASE_KEY
+//   npx wrangler secret put JWT_SECRET
+//   npx wrangler secret put GITHUB_TOKEN
+// Variabel non-rahasia bisa di-set di wrangler.toml [vars]
+let SUPABASE_URL    = 'https://bgwkwlrkvbspycqsdeif.supabase.co';
+let SUPABASE_KEY    = '';
+let JWT_SECRET      = '';
+let GITHUB_TOKEN    = '';
+let GITHUB_REPO     = 'SAFELFAR05/Up';
+let GITHUB_BRANCH   = 'main';
+let GITHUB_IMG_PATH = 'images/villas';
+let ALLOWED_ORIGIN  = '*';
 
 // ── CORS ─────────────────────────────────────────────────────────
-const CORS = {
-  'Access-Control-Allow-Origin':  ALLOWED_ORIGIN,
-  'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Max-Age':       '86400',
-};
+function getCORS() {
+  return {
+    'Access-Control-Allow-Origin':  ALLOWED_ORIGIN,
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Max-Age':       '86400',
+  };
+}
 
 function addCors(response) {
   const r = new Response(response.body, response);
-  for (const [k, v] of Object.entries(CORS)) r.headers.set(k, v);
+  for (const [k, v] of Object.entries(getCORS())) r.headers.set(k, v);
   return r;
 }
 
@@ -573,9 +580,19 @@ const ROUTES = [
 ];
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
+    // Baca secrets & vars dari Cloudflare environment
+    SUPABASE_URL    = env.SUPABASE_URL    || SUPABASE_URL;
+    SUPABASE_KEY    = env.SUPABASE_KEY    || SUPABASE_KEY;
+    JWT_SECRET      = env.JWT_SECRET      || JWT_SECRET;
+    GITHUB_TOKEN    = env.GITHUB_TOKEN    || GITHUB_TOKEN;
+    GITHUB_REPO     = env.GITHUB_REPO     || GITHUB_REPO;
+    GITHUB_BRANCH   = env.GITHUB_BRANCH   || GITHUB_BRANCH;
+    GITHUB_IMG_PATH = env.GITHUB_IMG_PATH || GITHUB_IMG_PATH;
+    ALLOWED_ORIGIN  = env.ALLOWED_ORIGIN  || ALLOWED_ORIGIN;
+
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: CORS });
+      return new Response(null, { status: 204, headers: getCORS() });
     }
 
     const path   = new URL(request.url).pathname.replace(/\/$/, '') || '/';
