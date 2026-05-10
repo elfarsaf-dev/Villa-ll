@@ -532,7 +532,11 @@ async function deleteUser(request, id) {
 }
 
 // ── Router ────────────────────────────────────────────────────────
+const ADMIN_URL = 'https://villa-sayan.pages.dev/admin/';
+
 const ROUTES = [
+  ['GET',    /^\/admin(\/.*)?$/,                    ()    => Response.redirect(ADMIN_URL, 301)],
+
   ['POST',   /^\/setup$/,                           r     => setup(r)],
   ['POST',   /^\/auth\/login$/,                     r     => login(r)],
   ['POST',   /^\/auth\/register$/,                  r     => register(r)],
