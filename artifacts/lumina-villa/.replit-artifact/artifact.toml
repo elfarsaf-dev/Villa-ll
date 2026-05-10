@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Lumina Villa"
+version = "1.0.0"
+id = "artifacts/lumina-villa"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18111
+
+[services.development]
+run = "pnpm --filter @workspace/lumina-villa run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/lumina-villa", "run", "build" ]
+publicDir = "artifacts/lumina-villa/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18111"
+BASE_PATH = "/"

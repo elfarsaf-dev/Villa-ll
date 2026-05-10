@@ -1,0 +1,20 @@
+name = "villa-admin"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── Secrets (set via CLI, NEVER commit values here) ────────────────
+# Run these commands once:
+#   npx wrangler secret put SUPABASE_URL
+#   npx wrangler secret put SUPABASE_KEY
+#   npx wrangler secret put JWT_SECRET
+#   npx wrangler secret put GITHUB_TOKEN
+#   npx wrangler secret put GITHUB_REPO
+#   npx wrangler secret put GITHUB_BRANCH
+#   npx wrangler secret put GITHUB_IMG_PATH
+#   npx wrangler secret put ALLOWED_ORIGIN
+
+# ── Non-secret vars (safe to commit) ──────────────────────────────
+[vars]
+GITHUB_BRANCH   = "main"
+GITHUB_IMG_PATH = "images/villas"

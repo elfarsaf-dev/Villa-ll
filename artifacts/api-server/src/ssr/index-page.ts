@@ -1,0 +1,193 @@
+import { COMMON_HEAD, TAILWIND_COLORS } from "./styles.js";
+
+type Villa = Record<string, any>;
+type GalleryItem = Record<string, any>;
+type Contact = Record<string, any>;
+
+function escape(s: unknown): string {
+  if (s == null) return "";
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function villaCard(v: Villa, cover: GalleryItem | undefined, waContact: Contact | undefined): string {
+  const location = [v.city, v.province].filter(Boolean).join(", ");
+  const waNum = waContact?.value?.replace(/\D/g, "");
+  const waHref = waNum ? `https://wa.me/62${waNum.replace(/^0/, "")}` : null;
+  const detailHref = v.slug ? `/villa/${encodeURIComponent(v.slug)}` : `/villa/?id=${v.id}`;
+
+  return `
+  <div class="villa-card">
+    <a href="${detailHref}" class="block overflow-hidden" style="height:220px;">
+      ${cover
+        ? `<img src="${escape(cover.url)}" alt="${escape(cover.alt || v.name)}" class="w-full h-full object-cover"/>`
+        : `<div class="w-full h-full bg-surface-container-highest flex items-center justify-center"><span class="material-symbols-outlined text-outline" style="font-size:56px;">villa</span></div>`
+      }
+    </a>
+    <div class="p-5">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <h3 class="font-serif text-xl text-primary leading-snug">${escape(v.name)}</h3>
+        ${location ? `<span class="text-[9px] tracking-widest uppercase text-secondary bg-surface-container px-2 py-1 rounded-full whitespace-nowrap">${escape(location)}</span>` : ""}
+      </div>
+      ${v.tagline ? `<p class="text-[0.8125rem] text-on-surface-variant leading-relaxed mb-1">${escape(v.tagline)}</p>` : ""}
+      <div class="flex flex-wrap gap-3 text-[0.75rem] text-secondary mt-2 mb-4">
+        ${v.max_guests ? `<span class="flex items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">groups</span>Maks. ${escape(v.max_guests)} orang</span>` : ""}
+        ${v.checkin_time ? `<span class="flex items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">schedule</span>CI ${escape(v.checkin_time)}</span>` : ""}
+      </div>
+      <div class="flex gap-2">
+        <a href="${detailHref}" class="flex-1 text-center py-2.5 rounded-xl text-[0.8rem] font-semibold text-white transition-colors" style="background:#1e3a2f;letter-spacing:0.05em;">
+          Lihat Detail
+        </a>
+        ${waHref ? `<a href="${waHref}" target="_blank" rel="noopener" class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-[0.8rem] font-semibold transition-colors" style="background:#dcfce7;color:#166534;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WA
+        </a>` : ""}
+      </div>
+    </div>
+  </div>`;
+}
+
+export function renderIndexPage(
+  villas: Villa[],
+  coverMap: Record<string, GalleryItem>,
+  contactMap: Record<string, Contact>,
+  globalWa?: Contact
+): string {
+  const villaCards = villas.length
+    ? villas.map(v => villaCard(v, coverMap[v.id], contactMap[v.id] || globalWa)).join("")
+    : `<div class="md:col-span-3 text-center py-16 text-on-surface-variant">
+        <span class="material-symbols-outlined text-5xl mb-4 block opacity-30">villa</span>
+        <p class="text-base">Belum ada villa terdaftar.</p>
+      </div>`;
+
+  const year = new Date().getFullYear();
+
+  return `<!DOCTYPE html>
+<html class="light" lang="id">
+<head>
+  <title>Villa Tawangmangu — Villa Eksklusif Sekipan Tawangmangu</title>
+  <meta name="description" content="Villa Tawangmangu — Sewa villa eksklusif di Sekipan, Tawangmangu, Karanganyar. Kolam renang privat, pemandangan pegunungan, cocok untuk keluarga, reuni &amp; gathering besar."/>
+  <meta name="keywords" content="villa tawangmangu, sewa villa tawangmangu, villa sekipan, villa karanganyar, villa kolam renang tawangmangu, villa keluarga tawangmangu, villa gathering tawangmangu"/>
+  <meta property="og:title" content="Villa Tawangmangu — Villa Eksklusif Sekipan"/>
+  <meta property="og:description" content="Sewa villa eksklusif di Sekipan, Tawangmangu. Kolam renang privat, pemandangan pegunungan, kapasitas besar untuk keluarga &amp; gathering."/>
+  <meta property="og:type" content="website"/>
+  <meta name="robots" content="index, follow"/>
+  ${COMMON_HEAD}
+  <script>${TAILWIND_COLORS}</script>
+  <style>
+    .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; font-size:24px; }
+    body { background:#f8faf8; color:#191d1a; -webkit-font-smoothing:antialiased; font-family:"Plus Jakarta Sans",sans-serif; }
+    html { scroll-behavior:smooth; }
+    .font-serif { font-family:"Noto Serif",Georgia,serif; }
+    .villa-card { background:#fff; border-radius:16px; overflow:hidden; border:1px solid #e0e4e0; transition:transform 0.25s ease,box-shadow 0.25s ease; }
+    .villa-card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,0,0,0.10); }
+    .villa-card img { transition:transform 0.5s ease; }
+    .villa-card:hover img { transform:scale(1.04); }
+    nav.scrolled { background:rgba(248,250,248,0.96)!important; border-bottom:1px solid #e0e4e0; }
+    .hero-bg { background:linear-gradient(135deg,#1e3a2f 0%,#2d4f3f 50%,#1a3329 100%); min-height:70vh; position:relative; overflow:hidden; }
+    .hero-bg::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation:fadeUp 0.7s ease both; }
+    .fade-up-1 { animation:fadeUp 0.7s ease 0.1s both; }
+    .fade-up-2 { animation:fadeUp 0.7s ease 0.2s both; }
+  </style>
+</head>
+<body>
+
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background:transparent;">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="/" class="font-serif text-lg tracking-widest text-white font-bold" id="nav-brand">VILLA TAWANGMANGU</a>
+    <a href="/admin/index.html" class="text-[10px] tracking-widest uppercase font-semibold text-white/60 hover:text-white transition-colors flex items-center gap-1.5">
+      <span class="material-symbols-outlined" style="font-size:16px;">admin_panel_settings</span>Admin
+    </a>
+  </div>
+</nav>
+
+<div class="hero-bg flex flex-col items-center justify-center text-center px-6 py-32 pt-40">
+  <div class="relative z-10">
+    <p class="fade-up text-[10px] tracking-[0.25em] uppercase font-semibold text-white/50 mb-4">Sekipan · Tawangmangu · Karanganyar</p>
+    <h1 class="fade-up-1 font-serif text-5xl md:text-7xl text-white leading-tight mb-5">Villa Tawangmangu</h1>
+    <p class="fade-up-2 text-base md:text-lg text-white/70 leading-relaxed max-w-lg mx-auto">
+      Sewa villa eksklusif di Sekipan, Tawangmangu — kolam renang privat, pemandangan pegunungan, cocok untuk keluarga &amp; gathering besar
+    </p>
+    <div class="fade-up-2 flex items-center justify-center gap-3 mt-3 text-white/40 text-xs tracking-widest uppercase">
+      <span>Kolam Renang Privat</span><span>·</span><span>Pemandangan Pegunungan</span><span>·</span><span>Kapasitas Besar</span>
+    </div>
+    <div class="mt-8">
+      <a href="#villas" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-primary bg-white hover:bg-white/90 transition-all shadow-lg" style="letter-spacing:0.05em;">
+        <span class="material-symbols-outlined" style="font-size:18px;">villa</span>Lihat Villa
+      </a>
+    </div>
+  </div>
+</div>
+
+<section id="villas" class="py-20 px-6 bg-surface">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-14">
+      <span class="text-[10px] tracking-[0.2em] uppercase font-semibold text-secondary block mb-3">Pilihan Villa Kami</span>
+      <h2 class="font-serif text-3xl md:text-4xl text-primary">Temukan Villa Impian Anda</h2>
+      <div class="flex items-center justify-center mt-4">
+        <div class="w-12 h-[1px] bg-outline-variant"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-primary/30 mx-3"></div>
+        <div class="w-12 h-[1px] bg-outline-variant"></div>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      ${villaCards}
+    </div>
+  </div>
+</section>
+
+<section class="py-20 px-6" style="background:#1e3a2f;">
+  <div class="max-w-4xl mx-auto text-center text-white">
+    <h2 class="font-serif text-3xl md:text-4xl mb-3">Kenapa Pilih Kami?</h2>
+    <p class="text-white/50 text-sm mb-12">Kami menyediakan pengalaman menginap terbaik di kawasan Tawangmangu</p>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="flex flex-col items-center gap-3">
+        <span class="material-symbols-outlined text-white/60" style="font-size:36px;">pool</span>
+        <h3 class="font-semibold text-sm tracking-wide">Kolam Renang Privat</h3>
+        <p class="text-white/40 text-xs leading-relaxed">Setiap villa memiliki kolam renang pribadi eksklusif untuk tamu</p>
+      </div>
+      <div class="flex flex-col items-center gap-3">
+        <span class="material-symbols-outlined text-white/60" style="font-size:36px;">landscape</span>
+        <h3 class="font-semibold text-sm tracking-wide">Pemandangan Pegunungan</h3>
+        <p class="text-white/40 text-xs leading-relaxed">Nikmati udara segar dan panorama hutan Sekipan yang memukau</p>
+      </div>
+      <div class="flex flex-col items-center gap-3">
+        <span class="material-symbols-outlined text-white/60" style="font-size:36px;">groups</span>
+        <h3 class="font-semibold text-sm tracking-wide">Kapasitas Besar</h3>
+        <p class="text-white/40 text-xs leading-relaxed">Ideal untuk keluarga besar, reuni, dan gathering perusahaan</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="px-6 py-10" style="background:#ecefec;border-top:1px solid #bfc9c1;">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="font-serif text-lg tracking-widest text-primary">VILLA TAWANGMANGU</div>
+    <p class="text-[0.8125rem] text-on-surface-variant text-center">Villa eksklusif di Sekipan, Tawangmangu, Karanganyar</p>
+    <a href="/admin/index.html" class="text-[10px] tracking-widest uppercase text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
+      <span class="material-symbols-outlined" style="font-size:14px;">settings</span>Admin Dashboard
+    </a>
+  </div>
+  <div class="max-w-6xl mx-auto mt-6 pt-5 border-t border-outline-variant text-center">
+    <p class="text-[9px] text-on-surface-variant tracking-widest uppercase">&copy; ${year} Villa Tawangmangu. All Rights Reserved.</p>
+  </div>
+</footer>
+
+<script>
+const navbar = document.getElementById('navbar');
+const brand  = document.getElementById('nav-brand');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 60) {
+    navbar.classList.add('scrolled');
+    if (brand) brand.style.color = '#1e3a2f';
+    navbar.querySelector('a:last-child').style.color = '#5c6b5e';
+  } else {
+    navbar.classList.remove('scrolled');
+    if (brand) brand.style.color = '';
+    navbar.querySelector('a:last-child').style.color = '';
+  }
+});
+</script>
+</body>
+</html>`;
+}
