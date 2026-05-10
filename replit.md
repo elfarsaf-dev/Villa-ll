@@ -1,6 +1,6 @@
 # Villa Admin — Lumina Villa
 
-Multi-villa management system: static villa landing pages + Cloudflare Worker backend + admin dashboard.
+Multi-villa management system: static villa landing pages + Cloudflare Worker backend + admin dashboard. e
 
 ## Run & Operate
 
