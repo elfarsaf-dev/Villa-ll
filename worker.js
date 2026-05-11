@@ -2002,7 +2002,7 @@ function nvResetDefaultPolicies() {
 function esc(str) { return (str||'').replace(/'/g, "\\\\'").replace(/"/g, '&quot;'); }
 
 // ── Section: Import AI ─────────────────────────────────────────────
-const AI_URL = 'https://aistep.cocspedsafliz.workers.dev/';
+const AI_URL = window.location.origin + '/ai';
 
 function renderAIImport() {
   if (!villaId()) return setContent('<div class="text-slate-400 text-center pt-20">Pilih villa terlebih dahulu</div>');
@@ -2417,6 +2417,36 @@ export default {
       if (method === "GET" && (path === "/admin" || path === "/admin/")) {
         return html(ADMIN_HTML);
       }
+      // ── AI: GET /ai ─────────────────────────────────────────────
+      if (method === "GET" && path === "/ai") {
+        const message = url.searchParams.get("message") || "";
+        const logic   = url.searchParams.get("logic")   || "";
+        const memory  = url.searchParams.get("memory")  || "[]";
+        if (!env.OPENROUTER_KEY) return json({ error: "OPENROUTER_KEY belum diset" }, 500);
+        let history = [];
+        try { history = JSON.parse(memory); } catch {}
+        const messages = [
+          { role: "system",  content: logic },
+          ...history,
+          { role: "user",    content: message },
+        ];
+        const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${env.OPENROUTER_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "openai/gpt-4o-mini",
+            messages,
+            temperature: 0.7,
+          }),
+        });
+        const aiData = await aiRes.json();
+        if (!aiRes.ok) return json({ error: aiData.error?.message || "OpenRouter error" }, 502);
+        return json({ reply: aiData.choices?.[0]?.message?.content ?? "" });
+      }
+
       // ── ROBOTS.TXT ──────────────────────────────────────────────
       if (method === "GET" && path === "/robots.txt") {
         return new Response(
