@@ -2773,17 +2773,25 @@ export default {
         const ext  = (file.name?.split(".").pop() || "jpg").toLowerCase();
         const imgPath = `${env.GITHUB_IMG_PATH||"images/villas"}/${villaId}/${Date.now()}.${ext}`;
         const buf  = await file.arrayBuffer();
-        const b64  = btoa(String.fromCharCode(...new Uint8Array(buf)));
+        // chunk-based base64 — aman untuk file besar (hindari stack overflow saat spread)
+        const bytes = new Uint8Array(buf);
+        let b64 = "";
+        const CHUNK = 8192;
+        for (let i = 0; i < bytes.length; i += CHUNK) {
+          b64 += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+        }
+        b64 = btoa(b64);
+        const branch = env.GITHUB_BRANCH || "main";
         const ghRes = await fetch(`https://api.github.com/repos/${env.GITHUB_REPO}/contents/${imgPath}`, {
           method: "PUT",
           headers: { Authorization: `Bearer ${env.GITHUB_TOKEN}`, "Content-Type": "application/json", "User-Agent": "VillaWorker/1.0" },
-          body: JSON.stringify({ message: `Upload ${imgPath}`, content: b64, branch: env.GITHUB_BRANCH||"main" }),
+          body: JSON.stringify({ message: `Upload ${imgPath}`, content: b64, branch }),
         });
         if (!ghRes.ok) return json({ error: `GitHub upload gagal: ${await ghRes.text()}` }, 500);
-        const ghData = await ghRes.json();
-        const rawUrl = ghData.content.download_url;
-        const gallery = await sb(env, "gallery", "POST", "", { villa_id:villaId, url:rawUrl, alt, sort_order:0, is_active:true });
-        return json({ url: rawUrl, gallery: gallery[0]||gallery }, 201);
+        // pakai jsDelivr sebagai CDN — lebih cepat & tidak ada rate limit GitHub raw
+        const cdnUrl = `https://cdn.jsdelivr.net/gh/${env.GITHUB_REPO}@${branch}/${imgPath}`;
+        const gallery = await sb(env, "gallery", "POST", "", { villa_id:villaId, url:cdnUrl, alt, sort_order:0, is_active:true });
+        return json({ url: cdnUrl, gallery: gallery[0]||gallery }, 201);
       }
 
       // ── 404 ──────────────────────────────────────────────────────
