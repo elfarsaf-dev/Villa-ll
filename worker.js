@@ -323,8 +323,8 @@ window.addEventListener('scroll',()=>{
   #ai-fab{position:fixed;bottom:24px;right:24px;z-index:9999;background:#1e3a2f;color:#fff;border:none;border-radius:50px;padding:11px 18px;display:flex;align-items:center;gap:8px;font-size:0.825rem;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(30,58,47,.4);transition:transform .2s,box-shadow .2s;font-family:"Plus Jakarta Sans",sans-serif;letter-spacing:.01em}
   #ai-fab:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(30,58,47,.5)}
   #ai-fab svg{flex-shrink:0}
-  #ai-panel{position:fixed;bottom:80px;right:24px;z-index:9998;width:360px;max-width:calc(100vw - 32px);background:#fff;border-radius:20px;box-shadow:0 8px 48px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;transition:opacity .25s,transform .25s;opacity:0;transform:translateY(14px) scale(.97);pointer-events:none}
-  #ai-panel.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+  #ai-panel{position:fixed;bottom:80px;right:24px;z-index:9998;width:360px;max-width:calc(100vw - 32px);background:#fff;border-radius:20px;box-shadow:0 8px 48px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;transition:opacity .25s,transform .25s,visibility .25s;opacity:0;transform:translateY(14px) scale(.97);pointer-events:none;visibility:hidden}
+  #ai-panel.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto;visibility:visible}
   #ai-chat-hd{background:#1e3a2f;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
   #ai-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;height:300px}
   #ai-msgs::-webkit-scrollbar{width:4px}#ai-msgs::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:2px}
@@ -405,11 +405,18 @@ function aiBubble(type, txt){
 
 function aiToggle(){
   _aiOpen=!_aiOpen;
-  document.getElementById('ai-panel').classList.toggle('open',_aiOpen);
-  if(_aiOpen && document.getElementById('ai-msgs').children.length===0){
-    var names=__V.map(function(v){return v.name+(v.kapasitas?' ('+v.kapasitas+' org)':'');}).join(', ');
-    aiBubble('bot','Halo! Saya asisten AI Villa Tawangmangu.\n\nVilla tersedia: '+names+'\n\nContoh pertanyaan:\n- Villa untuk 30 orang\n- Villa dengan kolam renang\n- Rekomendasi villa gathering');
-    setTimeout(function(){document.getElementById('ai-in').focus();},150);
+  var panel=document.getElementById('ai-panel');
+  if(!panel) return;
+  panel.classList.toggle('open',_aiOpen);
+  if(_aiOpen){
+    try{
+      var msgs=document.getElementById('ai-msgs');
+      if(msgs && msgs.children.length===0){
+        var names=(Array.isArray(__V)?__V:[]).map(function(v){return v.name+(v.kapasitas?' ('+v.kapasitas+' org)':'');}).join(', ');
+        aiBubble('bot','Halo! Saya asisten AI Villa Tawangmangu.\n\nVilla tersedia: '+(names||'—')+'\n\nContoh pertanyaan:\n- Villa untuk 30 orang\n- Villa dengan kolam renang\n- Rekomendasi villa gathering');
+      }
+      setTimeout(function(){var inp=document.getElementById('ai-in');if(inp)inp.focus();},150);
+    }catch(e){}
   }
 }
 
