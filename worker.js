@@ -595,6 +595,30 @@ export default {
 if (method === "GET" && (path === "/admin" || path === "/admin/")) {
   return Response.redirect("https://villa-sayan.pages.dev/admin/", 301);
 }
+      // ── ROBOTS.TXT ──────────────────────────────────────────────
+      if (method === "GET" && path === "/robots.txt") {
+        return new Response(
+          `User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: https://tawangmangu.biz.id/sitemap.xml`,
+          { headers: { "Content-Type": "text/plain", "Cache-Control": "public, max-age=86400" } }
+        );
+      }
+
+      // ── SITEMAP ─────────────────────────────────────────────────
+      if (method === "GET" && path === "/sitemap.xml") {
+        const origin = "https://tawangmangu.biz.id";
+        const villas = await sb(env, "villa_info", "GET", "select=slug,updated_at&order=created_at.asc");
+        const today = new Date().toISOString().split("T")[0];
+        const urls = [
+          `<url><loc>${origin}/</loc><changefreq>daily</changefreq><priority>1.0</priority><lastmod>${today}</lastmod></url>`,
+          ...villas.filter(v => v.slug).map(v => {
+            const lastmod = v.updated_at ? v.updated_at.split("T")[0] : today;
+            return `<url><loc>${origin}/villa/${encodeURIComponent(v.slug)}</loc><changefreq>weekly</changefreq><priority>0.8</priority><lastmod>${lastmod}</lastmod></url>`;
+          }),
+        ];
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>`;
+        return new Response(xml, { headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
+      }
+
       // ── SSR: GET / ──────────────────────────────────────────────
       if (method === "GET" && path === "/") {
         const villas = await sb(env, "villa_info", "GET", "select=*&order=created_at.asc");
