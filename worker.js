@@ -383,8 +383,8 @@ function aiPrompt(){
     if(v.desc)      s+=' | Info: '+v.desc;
     s+=' | Link: '+location.origin+v.url;
     return s;
-  }).join('\n');
-  return 'Kamu adalah asisten AI ramah untuk Villa Tawangmangu.\n\nDATA VILLA:\n'+rows+'\n\nATURAN:\n- Jawab bahasa Indonesia yang ramah\n- Rekomendasikan villa sesuai kebutuhan (kapasitas, dll)\n- Sertakan link: [Nama Villa](url)\n- Jangan mengarang info selain dari data';
+  }).join('\\n');
+  return 'Kamu adalah asisten AI ramah untuk Villa Tawangmangu.\\n\\nDATA VILLA:\\n'+rows+'\\n\\nATURAN:\\n- Jawab bahasa Indonesia yang ramah\\n- Rekomendasikan villa sesuai kebutuhan (kapasitas, dll)\\n- Sertakan link: [Nama Villa](url)\\n- Jangan mengarang info selain dari data';
 }
 
 function aiBubble(type, txt){
@@ -395,9 +395,9 @@ function aiBubble(type, txt){
     .replace(/&/g,'&amp;')
     .replace(/</g,'&lt;')
     .replace(/>/g,'&gt;')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
-    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
-    .replace(/\n/g,'<br>');
+    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\\*\\*([^*]+)\\*\\*/g,'<strong>$1</strong>')
+    .replace(/\\n/g,'<br>');
   d.innerHTML=s;
   w.appendChild(d);
   w.scrollTop=w.scrollHeight;
@@ -413,7 +413,7 @@ function aiToggle(){
       var msgs=document.getElementById('ai-msgs');
       if(msgs && msgs.children.length===0){
         var names=(Array.isArray(__V)?__V:[]).map(function(v){return v.name+(v.kapasitas?' ('+v.kapasitas+' org)':'');}).join(', ');
-        aiBubble('bot','Halo! Saya asisten AI Villa Tawangmangu.\n\nVilla tersedia: '+(names||'—')+'\n\nContoh pertanyaan:\n- Villa untuk 30 orang\n- Villa dengan kolam renang\n- Rekomendasi villa gathering');
+        aiBubble('bot','Halo! Saya asisten AI Villa Tawangmangu.\\n\\nVilla tersedia: '+(names||'—')+'\\n\\nContoh pertanyaan:\\n- Villa untuk 30 orang\\n- Villa dengan kolam renang\\n- Rekomendasi villa gathering');
       }
       setTimeout(function(){var inp=document.getElementById('ai-in');if(inp)inp.focus();},150);
     }catch(e){}
