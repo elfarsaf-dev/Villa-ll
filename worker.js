@@ -722,8 +722,14 @@ const ADMIN_HTML = `<!DOCTYPE html>
       }
       #sidebar.open { left: 0; }
       #mobile-topbar { display: flex !important; }
-      #section-content { padding: 14px 12px 80px !important; }
+      #section-content { padding: 12px 10px 80px !important; }
       .modal { border-radius: 20px 20px 0 0; max-height: 88vh; }
+      th { padding: 7px 8px !important; font-size: 0.67rem !important; }
+      td { padding: 7px 8px !important; font-size: 0.74rem !important; }
+      .hide-mobile { display: none !important; }
+      .btn-sm { padding: 4px 7px !important; font-size: 0.68rem !important; }
+      h1.page-title { font-size: 1rem !important; }
+      .card { border-radius: 10px; }
     }
     @media (min-width: 768px) {
       #mobile-topbar { display: none !important; }
@@ -1031,10 +1037,10 @@ async function renderInquiries() {
         <td>\${i.name}</td>
         <td>\${i.phone || '-'}</td>
         <td>\${i.checkin_date || '-'}</td>
-        <td>\${i.checkout_date || '-'}</td>
-        <td>\${i.num_guests || '-'}</td>
+        <td class="hide-mobile">\${i.checkout_date || '-'}</td>
+        <td class="hide-mobile">\${i.num_guests || '-'}</td>
         <td>\${badgeHtml(i.status)}</td>
-        <td>\${i.message ? \`<span class="text-slate-400 text-xs">\${i.message.slice(0,40)}…</span>\` : '-'}</td>
+        <td class="hide-mobile">\${i.message ? \`<span class="text-slate-400 text-xs">\${i.message.slice(0,40)}…</span>\` : '-'}</td>
         <td>
           <select class="text-xs py-1 px-2" style="width:auto;" onchange="updateInquiry('\${i.id}',this.value)">
             \${['pending','replied','confirmed','cancelled'].map(s => \`<option \${s===i.status?'selected':''}>\${s}</option>\`).join('')}
@@ -1045,7 +1051,7 @@ async function renderInquiries() {
     setContent(\`
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h1 class="text-xl font-bold text-slate-800">Permintaan Reservasi</h1>
+          <h1 class="text-xl font-bold text-slate-800 page-title">Permintaan Reservasi</h1>
           <p class="text-sm text-slate-400">\${counts.all} total · \${counts.pending} menunggu</p>
         </div>
       </div>
@@ -1053,8 +1059,8 @@ async function renderInquiries() {
         <div class="overflow-x-auto">
           <table>
             <thead><tr>
-              <th>Nama</th><th>WA/Telp</th><th>Check-in</th><th>Check-out</th><th>Tamu</th>
-              <th>Status</th><th>Pesan</th><th>Ubah Status</th>
+              <th>Nama</th><th>WA/Telp</th><th>Check-in</th><th class="hide-mobile">Check-out</th><th class="hide-mobile">Tamu</th>
+              <th>Status</th><th class="hide-mobile">Pesan</th><th>Ubah Status</th>
             </tr></thead>
             <tbody>\${rows}</tbody>
           </table>
@@ -1078,7 +1084,7 @@ async function renderInfo() {
     const v = await api(\`/villas/\${villaId()}\`);
     setContent(\`
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-bold text-slate-800">Info Villa</h1>
+        <h1 class="text-xl font-bold text-slate-800 page-title">Info Villa</h1>
         <div class="text-xs text-slate-400">Slug: <code class="bg-slate-100 px-2 py-0.5 rounded">/&nbsp;\${v.slug || '-'}</code></div>
       </div>
       <div class="card p-6">
@@ -1157,8 +1163,8 @@ async function renderFacilities() {
         <td><span class="material-symbols-outlined text-green-700" style="font-size:18px;">\${f.icon||'star'}</span></td>
         <td class="font-medium">\${f.name}</td>
         <td class="text-slate-400">\${f.description||'-'}</td>
-        <td>\${f.sort_order}</td>
-        <td>\${f.is_active ? badgeHtml('active') : badgeHtml('suspended')}</td>
+        <td class="hide-mobile">\${f.sort_order}</td>
+        <td class="hide-mobile">\${f.is_active ? badgeHtml('active') : badgeHtml('suspended')}</td>
         <td class="flex gap-1">
           \${iconBtn('edit','slate-500',\`editFacility('\${f.id}','\${esc(f.name)}','\${esc(f.icon||'star')}','\${esc(f.description||'')}',\${f.sort_order})\`,'Edit')}
           \${iconBtn('delete','red-400',\`deleteFacility('\${f.id}')\`,'Hapus')}
@@ -1167,13 +1173,15 @@ async function renderFacilities() {
 
     setContent(\`
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-bold text-slate-800">Fasilitas</h1>
+        <h1 class="text-xl font-bold text-slate-800 page-title">Fasilitas</h1>
         <button class="btn btn-primary btn-sm" onclick="openFacilityModal()">
           <span class="material-symbols-outlined">add</span>Tambah</button>
       </div>
       <div class="card overflow-hidden">
-        <table><thead><tr><th>Ikon</th><th>Nama</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
-        <tbody>\${rows}</tbody></table>
+        <div class="overflow-x-auto">
+          <table><thead><tr><th>Ikon</th><th>Nama</th><th>Deskripsi</th><th class="hide-mobile">Urutan</th><th class="hide-mobile">Status</th><th>Aksi</th></tr></thead>
+          <tbody>\${rows}</tbody></table>
+        </div>
       </div>
 
       <!-- Modal -->
@@ -1242,7 +1250,7 @@ async function renderPolicies() {
       <tr>
         <td><span class="badge \${typeColor[p.type]||''}">\${p.type}</span></td>
         <td>\${p.content}</td>
-        <td>\${p.sort_order}</td>
+        <td class="hide-mobile">\${p.sort_order}</td>
         <td class="flex gap-1">
           \${iconBtn('edit','slate-500',\`editPolicy('\${p.id}','\${esc(p.type)}','\${esc(p.content)}',\${p.sort_order})\`,'Edit')}
           \${iconBtn('delete','red-400',\`deletePolicy('\${p.id}')\`,'Hapus')}
@@ -1251,12 +1259,14 @@ async function renderPolicies() {
 
     setContent(\`
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-bold text-slate-800">Kebijakan & Aturan</h1>
+        <h1 class="text-xl font-bold text-slate-800 page-title">Kebijakan & Aturan</h1>
         <button class="btn btn-primary btn-sm" onclick="openPolicyModal()"><span class="material-symbols-outlined">add</span>Tambah</button>
       </div>
       <div class="card overflow-hidden">
-        <table><thead><tr><th>Tipe</th><th>Isi</th><th>Urutan</th><th>Aksi</th></tr></thead>
-        <tbody>\${rows}</tbody></table>
+        <div class="overflow-x-auto">
+          <table><thead><tr><th>Tipe</th><th>Isi</th><th class="hide-mobile">Urutan</th><th>Aksi</th></tr></thead>
+          <tbody>\${rows}</tbody></table>
+        </div>
       </div>
 
       <div id="pol-modal" class="hidden modal-bg" onclick="if(event.target===this)this.classList.add('hidden')">
@@ -1322,8 +1332,8 @@ async function renderContacts() {
             <span class="badge bg-slate-100 text-slate-600">\${typeLabel[c.type]||c.type}</span>
           </span>
         </td>
-        <td>\${c.label||'-'}</td>
-        <td class="font-mono">\${c.value}</td>
+        <td class="hide-mobile">\${c.label||'-'}</td>
+        <td class="font-mono text-xs">\${c.value}</td>
         <td>\${c.is_primary ? '<span class="badge badge-active">Utama</span>' : ''}</td>
         <td class="flex gap-1">
           \${iconBtn('edit','slate-500',\`openEditContact('\${c.id}','\${esc(c.type)}','\${esc(c.label||'')}','\${esc(c.value)}',\${c.is_primary})\`,'Edit')}
@@ -1334,7 +1344,7 @@ async function renderContacts() {
     setContent(\`
       <div class="flex items-center justify-between mb-2">
         <div>
-          <h1 class="text-xl font-bold text-slate-800">Kontak Global</h1>
+          <h1 class="text-xl font-bold text-slate-800 page-title">Kontak Global</h1>
           <p class="text-sm text-slate-400 mt-0.5">Tampil otomatis di semua halaman villa</p>
         </div>
         <button class="btn btn-primary btn-sm" onclick="openAddContact()">
@@ -1346,10 +1356,12 @@ async function renderContacts() {
           <span class="material-symbols-outlined text-green-600" style="font-size:18px;">info</span>
           <p class="text-xs text-green-700">Kontak di sini berlaku untuk <strong>semua halaman</strong> — tidak perlu diset per-villa. Nomor WhatsApp utama (is_primary) akan dipakai sebagai tombol WA di hero &amp; card villa.</p>
         </div>
-        <table>
-          <thead><tr><th>Tipe</th><th>Label</th><th>Nomor / Alamat</th><th>Utama</th><th>Aksi</th></tr></thead>
-          <tbody>\${rows}</tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table>
+            <thead><tr><th>Tipe</th><th class="hide-mobile">Label</th><th>Nomor / Alamat</th><th>Utama</th><th>Aksi</th></tr></thead>
+            <tbody>\${rows}</tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Modal tambah/edit kontak -->
@@ -1456,7 +1468,7 @@ async function renderGallery() {
 
     setContent(\`
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-bold text-slate-800">Galeri Foto</h1>
+        <h1 class="text-xl font-bold text-slate-800 page-title">Galeri Foto</h1>
         <button class="btn btn-primary btn-sm" onclick="document.getElementById('gal-upload').classList.remove('hidden')">
           <span class="material-symbols-outlined">upload</span>Upload Foto</button>
       </div>
@@ -1547,11 +1559,11 @@ async function renderUsers() {
     const rows = users.map(u => \`
       <tr>
         <td class="font-medium">\${u.username}</td>
-        <td>\${u.email||'-'}</td>
+        <td class="hide-mobile">\${u.email||'-'}</td>
         <td><span class="badge \${u.role==='superadmin'?'bg-purple-100 text-purple-700':'bg-slate-100 text-slate-600'}">\${u.role}</span></td>
-        <td>\${u.villa_id ? villaMap[u.villa_id]||u.villa_id.slice(0,8) : '-'}</td>
+        <td class="hide-mobile">\${u.villa_id ? villaMap[u.villa_id]||u.villa_id.slice(0,8) : '-'}</td>
         <td>\${badgeHtml(u.status)}</td>
-        <td>\${u.created_at?.slice(0,10)||'-'}</td>
+        <td class="hide-mobile">\${u.created_at?.slice(0,10)||'-'}</td>
         <td class="flex gap-1 flex-wrap">
           \${u.status === 'pending'    ? \`<button class="btn btn-sm bg-green-100 text-green-700" onclick="approveUser('\${u.id}')">Setujui</button>\` : ''}
           \${u.status === 'active'     ? \`<button class="btn btn-sm bg-orange-100 text-orange-700" onclick="suspendUser('\${u.id}')">Suspend</button>\` : ''}
@@ -1564,13 +1576,13 @@ async function renderUsers() {
     setContent(\`
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h1 class="text-xl font-bold text-slate-800">Pengguna</h1>
+          <h1 class="text-xl font-bold text-slate-800 page-title">Pengguna</h1>
           <p class="text-sm text-slate-400">\${users.filter(u=>u.status==='pending').length} menunggu persetujuan</p>
         </div>
       </div>
       <div class="card overflow-hidden">
         <div class="overflow-x-auto">
-          <table><thead><tr><th>Username</th><th>Email</th><th>Peran</th><th>Villa</th><th>Status</th><th>Daftar</th><th>Aksi</th></tr></thead>
+          <table><thead><tr><th>Username</th><th class="hide-mobile">Email</th><th>Peran</th><th class="hide-mobile">Villa</th><th>Status</th><th class="hide-mobile">Daftar</th><th>Aksi</th></tr></thead>
           <tbody>\${rows}</tbody></table>
         </div>
       </div>
