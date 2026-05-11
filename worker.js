@@ -320,10 +320,10 @@ window.addEventListener('scroll',()=>{
 
 <!-- ── AI Chat Widget ────────────────────────────────────────── -->
 <style>
-  #ai-fab{position:fixed;bottom:24px;right:24px;z-index:50;background:#1e3a2f;color:#fff;border:none;border-radius:50px;padding:11px 18px;display:flex;align-items:center;gap:8px;font-size:0.825rem;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(30,58,47,.4);transition:transform .2s,box-shadow .2s;font-family:"Plus Jakarta Sans",sans-serif;letter-spacing:.01em}
+  #ai-fab{position:fixed;bottom:24px;right:24px;z-index:9999;background:#1e3a2f;color:#fff;border:none;border-radius:50px;padding:11px 18px;display:flex;align-items:center;gap:8px;font-size:0.825rem;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(30,58,47,.4);transition:transform .2s,box-shadow .2s;font-family:"Plus Jakarta Sans",sans-serif;letter-spacing:.01em}
   #ai-fab:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(30,58,47,.5)}
   #ai-fab svg{flex-shrink:0}
-  #ai-panel{position:fixed;bottom:80px;right:24px;z-index:50;width:360px;max-width:calc(100vw - 32px);background:#fff;border-radius:20px;box-shadow:0 8px 48px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;transition:opacity .25s,transform .25s;opacity:0;transform:translateY(14px) scale(.97);pointer-events:none}
+  #ai-panel{position:fixed;bottom:80px;right:24px;z-index:9998;width:360px;max-width:calc(100vw - 32px);background:#fff;border-radius:20px;box-shadow:0 8px 48px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;transition:opacity .25s,transform .25s;opacity:0;transform:translateY(14px) scale(.97);pointer-events:none}
   #ai-panel.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
   #ai-chat-hd{background:#1e3a2f;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
   #ai-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;height:300px}
@@ -363,88 +363,94 @@ window.addEventListener('scroll',()=>{
   <div id="ai-msgs"></div>
   <div id="ai-typing"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>
   <div id="ai-iw">
-    <input id="ai-in" placeholder="Cth: villa untuk 30 orang…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aiSend()}"/>
+    <input id="ai-in" placeholder="Cth: villa untuk 30 orang…"/>
     <button id="ai-go" onclick="aiSend()"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
   </div>
 </div>
 
 <script>
-(function(){
-  const __V=${villaJson};
-  let _hist=[], _open=false;
+var __V=${villaJson};
+var _aiHist=[];
+var _aiOpen=false;
 
-  function _prompt(){
-    const rows=__V.map((v,i)=>{
-      let s=(i+1)+'. '+v.name;
-      if(v.kapasitas) s+=' | Kapasitas: '+v.kapasitas+' orang';
-      if(v.tagline)   s+=' | '+v.tagline;
-      if(v.checkin)   s+=' | Check-in: '+v.checkin;
-      if(v.checkout)  s+=' | Check-out: '+v.checkout;
-      if(v.desc)      s+=' | Info: '+v.desc;
-      s+=' | Link: '+location.origin+v.url;
-      return s;
-    }).join('\\n');
-    return 'Kamu adalah asisten AI ramah untuk Villa Tawangmangu di Sekipan, Tawangmangu, Jawa Tengah.\\n\\nDATA VILLA TERSEDIA:\\n'+rows+'\\n\\nATURAN:\\n- Jawab bahasa Indonesia yang santai dan ramah\\n- Rekomendasikan villa sesuai kebutuhan tamu (kapasitas, jumlah orang, dll)\\n- Sertakan link villa dalam format markdown: [Nama Villa](url)\\n- Boleh rekomendasikan lebih dari satu villa jika relevan\\n- Jangan mengarang informasi di luar data di atas\\n- Gunakan emoji secukupnya agar pesan lebih hangat';
+function aiPrompt(){
+  var rows=__V.map(function(v,i){
+    var s=(i+1)+'. '+v.name;
+    if(v.kapasitas) s+=' | Kapasitas: '+v.kapasitas+' orang';
+    if(v.tagline)   s+=' | '+v.tagline;
+    if(v.checkin)   s+=' | Check-in: '+v.checkin;
+    if(v.checkout)  s+=' | Check-out: '+v.checkout;
+    if(v.desc)      s+=' | Info: '+v.desc;
+    s+=' | Link: '+location.origin+v.url;
+    return s;
+  }).join('\n');
+  return 'Kamu adalah asisten AI ramah untuk Villa Tawangmangu.\n\nDATA VILLA:\n'+rows+'\n\nATURAN:\n- Jawab bahasa Indonesia yang ramah\n- Rekomendasikan villa sesuai kebutuhan (kapasitas, dll)\n- Sertakan link: [Nama Villa](url)\n- Jangan mengarang info selain dari data';
+}
+
+function aiBubble(type, txt){
+  var w=document.getElementById('ai-msgs');
+  var d=document.createElement('div');
+  d.className='ai-b '+type;
+  var s=txt
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+  d.innerHTML=s;
+  w.appendChild(d);
+  w.scrollTop=w.scrollHeight;
+}
+
+function aiToggle(){
+  _aiOpen=!_aiOpen;
+  document.getElementById('ai-panel').classList.toggle('open',_aiOpen);
+  if(_aiOpen && document.getElementById('ai-msgs').children.length===0){
+    var names=__V.map(function(v){return v.name+(v.kapasitas?' ('+v.kapasitas+' org)':'');}).join(', ');
+    aiBubble('bot','Halo! Saya asisten AI Villa Tawangmangu.\n\nVilla tersedia: '+names+'\n\nContoh pertanyaan:\n- Villa untuk 30 orang\n- Villa dengan kolam renang\n- Rekomendasi villa gathering');
+    setTimeout(function(){document.getElementById('ai-in').focus();},150);
   }
+}
 
-  function _bubble(type, txt){
-    const w=document.getElementById('ai-msgs');
-    const d=document.createElement('div');
-    d.className='ai-b '+type;
-    const safe=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    d.innerHTML=safe
-      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
-      .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
-      .replace(/\n/g,'<br>');
-    w.appendChild(d);
-    w.scrollTop=w.scrollHeight;
+async function aiSend(){
+  var inp=document.getElementById('ai-in');
+  var msg=inp.value.trim();
+  if(!msg) return;
+  inp.value='';
+  document.getElementById('ai-go').disabled=true;
+  aiBubble('usr',msg);
+  var typing=document.getElementById('ai-typing');
+  typing.style.display='flex';
+  document.getElementById('ai-msgs').scrollTop=99999;
+
+  var prevHist=_aiHist.slice();
+  _aiHist.push({role:'user',content:msg});
+
+  try{
+    var p=new URLSearchParams({
+      message:msg,
+      logic:aiPrompt(),
+      memory:JSON.stringify(prevHist.slice(-8))
+    });
+    var res=await fetch('/ai?'+p);
+    var data=await res.json();
+    var reply=data.reply||'Maaf, tidak dapat merespons saat ini.';
+    typing.style.display='none';
+    aiBubble('bot',reply);
+    _aiHist.push({role:'assistant',content:reply});
+    if(_aiHist.length>16) _aiHist=_aiHist.slice(-16);
+  }catch(e){
+    typing.style.display='none';
+    aiBubble('bot','Maaf, ada gangguan. Coba lagi ya!');
   }
+  document.getElementById('ai-go').disabled=false;
+  inp.focus();
+}
 
-  window.aiToggle=function(){
-    _open=!_open;
-    document.getElementById('ai-panel').classList.toggle('open',_open);
-    if(_open && document.getElementById('ai-msgs').children.length===0){
-      const names=__V.map(v=>'<strong>'+v.name+'</strong>'+(v.kapasitas?' ('+v.kapasitas+' orang)':'')).join(', ');
-      _bubble('bot','Halo! 👋 Saya asisten AI Villa Tawangmangu.\\n\\nSaat ini tersedia: '+names+'\\n\\nTanya aja kebutuhan kamu, misalnya:\\n• Villa untuk 25 orang\\n• Villa dengan kolam renang privat\\n• Rekomendasi villa untuk gathering');
-      setTimeout(()=>document.getElementById('ai-in').focus(),150);
-    }
-  };
-
-  window.aiSend=async function(){
-    const inp=document.getElementById('ai-in');
-    const msg=inp.value.trim();
-    if(!msg) return;
-    inp.value='';
-    document.getElementById('ai-go').disabled=true;
-    _bubble('usr',msg);
-    const typing=document.getElementById('ai-typing');
-    typing.style.display='flex';
-    document.getElementById('ai-msgs').scrollTop=9999;
-
-    const prevHist=[..._hist];
-    _hist.push({role:'user',content:msg});
-
-    try{
-      const p=new URLSearchParams({
-        message:msg,
-        logic:_prompt(),
-        memory:JSON.stringify(prevHist.slice(-8))
-      });
-      const res=await fetch('/ai?'+p);
-      const data=await res.json();
-      const reply=data.reply||'Maaf, tidak dapat merespons saat ini. Coba lagi ya!';
-      typing.style.display='none';
-      _bubble('bot',reply);
-      _hist.push({role:'assistant',content:reply});
-      if(_hist.length>16) _hist=_hist.slice(-16);
-    }catch(e){
-      typing.style.display='none';
-      _bubble('bot','Maaf, ada gangguan koneksi. Silakan coba lagi 🙏');
-    }
-    document.getElementById('ai-go').disabled=false;
-    inp.focus();
-  };
-})();
+document.getElementById('ai-in').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend();}
+});
 </script>
 </body></html>`;
 }
