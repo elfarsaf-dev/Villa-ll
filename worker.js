@@ -591,7 +591,18 @@ export default {
           body = await request.formData();
         }
       }
+      // ── ADMIN PAGE ──────────────────────────────────────────────
+if (method === "GET" && path === "/admin") {
+  return Response.redirect(`${url.origin}/admin/`, 301);
+}
 
+if (method === "GET" && path === "/admin/") {
+  const htmlFile = await fetch(
+    new URL("./admin/index.html", import.meta.url)
+  ).then(r => r.text());
+
+  return html(htmlFile);
+}
       // ── SSR: GET / ──────────────────────────────────────────────
       if (method === "GET" && path === "/") {
         const villas = await sb(env, "villa_info", "GET", "select=*&order=created_at.asc");
