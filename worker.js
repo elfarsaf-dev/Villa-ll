@@ -592,16 +592,8 @@ export default {
         }
       }
       // ── ADMIN PAGE ──────────────────────────────────────────────
-if (method === "GET" && path === "/admin") {
-  return Response.redirect(`${url.origin}/admin/`, 301);
-}
-
-if (method === "GET" && path === "/admin/") {
-  const htmlFile = await fetch(
-    new URL("./admin/index.html", import.meta.url)
-  ).then(r => r.text());
-
-  return html(htmlFile);
+if (method === "GET" && (path === "/admin" || path === "/admin/")) {
+  return Response.redirect("https://villa-sayan.pages.dev/admin/", 301);
 }
       // ── SSR: GET / ──────────────────────────────────────────────
       if (method === "GET" && path === "/") {
