@@ -400,6 +400,7 @@ function aiBubble(type, txt){
     .replace(/&/g,'&amp;')
     .replace(/</g,'&lt;')
     .replace(/>/g,'&gt;')
+    .replace(/villa tawangmangu/gi,'<a href="https://bosvillatawangmangu.my.id" target="_blank" rel="noopener" style="color:#1e6e4a;font-weight:600">Villa Tawangmangu</a>')
     .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/\\*\\*([^*]+)\\*\\*/g,'<strong>$1</strong>')
     .replace(/\\n/g,'<br>');
@@ -519,8 +520,9 @@ function renderVillaPage(v, facilities, gallery, policies, contacts) {
   if (v.checkout_time) aboutMeta += `<div class="border-l-2 border-primary/20 pl-4 py-1"><h4 class="text-[10px] tracking-widest uppercase font-semibold text-primary mb-1">Check-out</h4><p class="text-[0.875rem] text-on-surface-variant font-semibold">${esc(v.checkout_time)}</p></div>`;
   if (price)           aboutMeta += `<div class="border-l-2 border-primary/20 pl-4 py-1"><h4 class="text-[10px] tracking-widest uppercase font-semibold text-primary mb-1">Extra Bed</h4><p class="text-[0.875rem] text-on-surface-variant font-semibold">Rp${price}/bed</p></div>`;
 
+  const linkVT = s => s.replace(/villa tawangmangu/gi, '<a href="https://bosvillatawangmangu.my.id" target="_blank" rel="noopener" style="color:#1e6e4a;font-weight:600;text-decoration:underline">Villa Tawangmangu</a>');
   const descHtml = (v.description || v.tagline || "")
-    .split("\n").filter(Boolean).map(p => `<p>${esc(p)}</p>`).join("") || `<p>${esc(v.tagline || "")}</p>`;
+    .split("\n").filter(Boolean).map(p => `<p>${linkVT(esc(p))}</p>`).join("") || `<p>${linkVT(esc(v.tagline || ""))}</p>`;
 
   const facilitiesHtml = facilities.length
     ? facilities.map(f => `<div class="bg-white rounded-xl p-5 flex flex-col items-center text-center hover:shadow-md transition-shadow"><span class="material-symbols-outlined text-primary mb-3" style="font-size:30px">${esc(f.icon||"star")}</span><h5 class="text-[10px] tracking-widest uppercase font-semibold text-primary mb-2">${esc(f.name)}</h5><p class="text-[0.75rem] text-on-surface-variant leading-relaxed">${esc(f.description||"")}</p></div>`).join("")
@@ -991,6 +993,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
     <!-- Villa selector (superadmin) -->
     <div id="villa-selector-wrap" class="hidden px-4 pt-3">
       <label>Villa Aktif</label>
+      <input id="villa-search" type="search" placeholder="Cari nama villa…" oninput="filterVilla(this.value)" autocomplete="off" style="font-size:0.8rem;padding:6px 10px;margin-bottom:4px;width:100%;border:1.5px solid #e2e8f0;border-radius:8px;outline:none;"/>
       <select id="villa-selector" onchange="onVillaChange(this.value)" style="font-size:0.8rem;padding:6px 10px;"></select>
     </div>
 
@@ -1157,6 +1160,21 @@ function onVillaChange(id) {
   S.currentVillaId = id;
   localStorage.setItem('villa_current_id', id);
   showSection(S.currentSection);
+}
+
+function filterVilla(q) {
+  const sel = document.getElementById('villa-selector');
+  if (!sel) return;
+  const lower = (q || '').toLowerCase().trim();
+  const cur = sel.value;
+  sel.innerHTML = S.villas
+    .filter(v => !lower || v.name.toLowerCase().includes(lower))
+    .map(v => \`<option value="\${v.id}"\${v.id === cur ? ' selected' : ''}>\${v.name}</option>\`)
+    .join('');
+  if (!sel.value && sel.options.length) {
+    sel.value = sel.options[0].value;
+    onVillaChange(sel.options[0].value);
+  }
 }
 
 // ── Sidebar mobile ────────────────────────────────────────────────
