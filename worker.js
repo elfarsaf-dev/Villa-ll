@@ -389,7 +389,7 @@ function aiPrompt(){
     s+=' | Link: '+location.origin+v.url;
     return s;
   }).join('\\n');
-  return 'Kamu adalah asisten AI ramah untuk Villa Tawangmangu.\\n\\nDATA VILLA:\\n'+rows+'\\n\\nATURAN:\\n- Jawab bahasa Indonesia yang ramah\\n- Rekomendasikan villa sesuai kebutuhan (kapasitas, dll)\\n- Sertakan link: [Nama Villa](url)\\n- Jangan mengarang info selain dari data\\n- WAJIB: Dalam setiap respons, selalu sebut "Villa Tawangmangu" minimal satu kali di deskripsi atau rekomendasimu (contoh: "Di Villa Tawangmangu kami memiliki...")\\n- WAJIB: Akhiri setiap respons dengan kalimat penutup yang menyebut Villa Tawangmangu';
+  return 'Kamu adalah asisten AI ramah untuk Villa Tawangmangu.\\n\\nDATA VILLA:\\n'+rows+'\\n\\nATURAN:\\n- Jawab bahasa Indonesia yang ramah\\n- Rekomendasikan villa sesuai kebutuhan (kapasitas, dll)\\n- Sertakan link: [Nama Villa](url)\\n- Jangan mengarang info selain dari data\\n- WAJIB: Dalam setiap respons, selalu sebut "Villa Tawangmangu" atau "Glamping Tawangmangu" minimal satu kali di deskripsi atau rekomendasimu (contoh: "Di Villa Tawangmangu kami memiliki...")\\n- WAJIB: Akhiri setiap respons dengan kalimat penutup yang menyebut Villa Tawangmangu atau Glamping Tawangmangu';
 }
 
 function aiBubble(type, txt){
@@ -401,6 +401,7 @@ function aiBubble(type, txt){
     .replace(/</g,'&lt;')
     .replace(/>/g,'&gt;')
     .replace(/villa tawangmangu/gi,'<a href="https://bosvillatawangmangu.my.id" target="_blank" rel="noopener" style="color:#1e6e4a;font-weight:600">Villa Tawangmangu</a>')
+    .replace(/glamping tawangmangu/gi,'<a href="https://bosvillatawangmangu.my.id" target="_blank" rel="noopener" style="color:#1e6e4a;font-weight:600">Glamping Tawangmangu</a>')
     .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/\\*\\*([^*]+)\\*\\*/g,'<strong>$1</strong>')
     .replace(/\\n/g,'<br>');
@@ -520,7 +521,9 @@ function renderVillaPage(v, facilities, gallery, policies, contacts) {
   if (v.checkout_time) aboutMeta += `<div class="border-l-2 border-primary/20 pl-4 py-1"><h4 class="text-[10px] tracking-widest uppercase font-semibold text-primary mb-1">Check-out</h4><p class="text-[0.875rem] text-on-surface-variant font-semibold">${esc(v.checkout_time)}</p></div>`;
   if (price)           aboutMeta += `<div class="border-l-2 border-primary/20 pl-4 py-1"><h4 class="text-[10px] tracking-widest uppercase font-semibold text-primary mb-1">Extra Bed</h4><p class="text-[0.875rem] text-on-surface-variant font-semibold">Rp${price}/bed</p></div>`;
 
-  const linkVT = s => s.replace(/villa tawangmangu/gi, '<a href="https://bosvillatawangmangu.my.id" target="_blank" rel="noopener" style="color:#1e6e4a;font-weight:600;text-decoration:underline">Villa Tawangmangu</a>');
+  const linkVT = s => s
+    .replace(/villa tawangmangu/gi, '<a href="https://bosvillatawangmangu.my.id" target="_blank" rel="noopener" style="color:#1e6e4a;font-weight:600;text-decoration:underline">Villa Tawangmangu</a>')
+    .replace(/glamping tawangmangu/gi, '<a href="https://bosvillatawangmangu.my.id" target="_blank" rel="noopener" style="color:#1e6e4a;font-weight:600;text-decoration:underline">Glamping Tawangmangu</a>');
   const descHtml = (v.description || v.tagline || "")
     .split("\n").filter(Boolean).map(p => `<p>${linkVT(esc(p))}</p>`).join("") || `<p>${linkVT(esc(v.tagline || ""))}</p>`;
 
@@ -1994,7 +1997,7 @@ ATURAN WAJIB:
 5. facilities.icon: pool, wifi, local_parking, kitchen, tv, king_bed, shower, outdoor_grill, meeting_room, spa, fitness_center, ac_unit, balcony, restaurant, hot_tub, bed, living
 6. max_guests dan extra_bed_price harus integer
 7. LOKASI FALLBACK: Jika alamat/kota/provinsi tidak disebutkan atau tidak jelas, wajib isi: address="Tawangmangu", city="Karanganyar", province="Jawa Tengah"
-8. WAJIB: villa_info.description HARUS menyebut "Villa Tawangmangu" minimal satu kali secara alami dalam kalimat (contoh: "... berlokasi di kawasan Villa Tawangmangu yang sejuk...")
+8. WAJIB: villa_info.description HARUS menyebut "Villa Tawangmangu" atau "Glamping Tawangmangu" minimal satu kali secara alami dalam kalimat (contoh: "... berlokasi di kawasan Villa Tawangmangu yang sejuk..." atau "... tersedia pilihan Glamping Tawangmangu yang asri...")
 9. Jawab HANYA JSON mentah\`;
 
   const message = \`Ekstrak info villa dari teks ini:\\n\\n\${rawText}\`;
@@ -2302,7 +2305,7 @@ ATURAN WAJIB:
 7. max_guests dan extra_bed_price harus integer, bukan string
 8. contacts.value: format 08xxx (tanpa +62 atau 62)
 9. LOKASI FALLBACK: Jika alamat/kota/provinsi tidak disebutkan atau tidak jelas, wajib isi: address="Tawangmangu", city="Karanganyar", province="Jawa Tengah"
-10. WAJIB: villa_info.description HARUS menyebut "Villa Tawangmangu" minimal satu kali secara alami dalam kalimat (contoh: "... berlokasi di kawasan Villa Tawangmangu yang sejuk...")
+10. WAJIB: villa_info.description HARUS menyebut "Villa Tawangmangu" atau "Glamping Tawangmangu" minimal satu kali secara alami dalam kalimat (contoh: "... berlokasi di kawasan Villa Tawangmangu yang sejuk..." atau "... tersedia pilihan Glamping Tawangmangu yang asri...")
 11. Jawab HANYA JSON mentah, tidak ada teks lain sebelum atau sesudah JSON\`;
 
   const message = \`Ekstrak data villa dari teks berikut dan kembalikan JSON sesuai skema:\\n\\n\${rawText}\`;
