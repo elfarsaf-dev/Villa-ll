@@ -389,7 +389,7 @@ function aiPrompt(){
     s+=' | Link: '+location.origin+v.url;
     return s;
   }).join('\\n');
-  return 'Kamu adalah asisten AI ramah untuk Villa Tawangmangu.\\n\\nDATA VILLA:\\n'+rows+'\\n\\nATURAN:\\n- Jawab bahasa Indonesia yang ramah\\n- Rekomendasikan villa sesuai kebutuhan (kapasitas, dll)\\n- Sertakan link: [Nama Villa](url)\\n- Jangan mengarang info selain dari data';
+  return 'Kamu adalah asisten AI ramah untuk Villa Tawangmangu.\\n\\nDATA VILLA:\\n'+rows+'\\n\\nATURAN:\\n- Jawab bahasa Indonesia yang ramah\\n- Rekomendasikan villa sesuai kebutuhan (kapasitas, dll)\\n- Sertakan link: [Nama Villa](url)\\n- Jangan mengarang info selain dari data\\n- WAJIB: Dalam setiap respons, selalu sebut "Villa Tawangmangu" minimal satu kali di deskripsi atau rekomendasimu (contoh: "Di Villa Tawangmangu kami memiliki...")\\n- WAJIB: Akhiri setiap respons dengan kalimat penutup yang menyebut Villa Tawangmangu';
 }
 
 function aiBubble(type, txt){
