@@ -1994,7 +1994,8 @@ ATURAN WAJIB:
 5. facilities.icon: pool, wifi, local_parking, kitchen, tv, king_bed, shower, outdoor_grill, meeting_room, spa, fitness_center, ac_unit, balcony, restaurant, hot_tub, bed, living
 6. max_guests dan extra_bed_price harus integer
 7. LOKASI FALLBACK: Jika alamat/kota/provinsi tidak disebutkan atau tidak jelas, wajib isi: address="Tawangmangu", city="Karanganyar", province="Jawa Tengah"
-8. Jawab HANYA JSON mentah\`;
+8. WAJIB: villa_info.description HARUS menyebut "Villa Tawangmangu" minimal satu kali secara alami dalam kalimat (contoh: "... berlokasi di kawasan Villa Tawangmangu yang sejuk...")
+9. Jawab HANYA JSON mentah\`;
 
   const message = \`Ekstrak info villa dari teks ini:\\n\\n\${rawText}\`;
 
@@ -2301,7 +2302,8 @@ ATURAN WAJIB:
 7. max_guests dan extra_bed_price harus integer, bukan string
 8. contacts.value: format 08xxx (tanpa +62 atau 62)
 9. LOKASI FALLBACK: Jika alamat/kota/provinsi tidak disebutkan atau tidak jelas, wajib isi: address="Tawangmangu", city="Karanganyar", province="Jawa Tengah"
-10. Jawab HANYA JSON mentah, tidak ada teks lain sebelum atau sesudah JSON\`;
+10. WAJIB: villa_info.description HARUS menyebut "Villa Tawangmangu" minimal satu kali secara alami dalam kalimat (contoh: "... berlokasi di kawasan Villa Tawangmangu yang sejuk...")
+11. Jawab HANYA JSON mentah, tidak ada teks lain sebelum atau sesudah JSON\`;
 
   const message = \`Ekstrak data villa dari teks berikut dan kembalikan JSON sesuai skema:\\n\\n\${rawText}\`;
 
