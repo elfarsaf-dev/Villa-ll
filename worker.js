@@ -130,6 +130,7 @@ function esc(s) {
 // ── SSR: Shared head ──────────────────────────────────────────────────────────
 const COMMON_HEAD = `
   <meta charset="utf-8"/>
+  <meta name="google-site-verification" content="oW9Fqr-5Hy84zT9hcd9At460aCcqaoWD9iSpre6tESU" />
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏡</text></svg>"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -1975,7 +1976,7 @@ OUTPUT WAJIB berisi 3 key: villa_info, facilities, dan policies.
 
 Contoh output LENGKAP:
 {
-  "villa_info": {"name":"Villa Diandra 2","slug":"villa-diandra-2","tagline":"Villa eksklusif dengan kolam renang privat","description":"Deskripsi lengkap...","address":"Sekipan, Tawangmangu","city":"Karanganyar","province":"Jawa Tengah","max_guests":25,"max_guests_note":"","extra_bed_price":150000,"extra_bed_note":"","checkin_time":"14.00 WIB","checkout_time":"12.00 WIB"},
+  "villa_info": {"name":"Villa Diandra 2","slug":"villa-diandra-2","tagline":"Villa eksklusif dengan kolam renang privat","description":"Villa Diandra 2 adalah salah satu villa terbaik di kawasan Villa Tawangmangu yang menawarkan pengalaman menginap yang mewah dan nyaman. Terletak di Sekipan Tawangmangu dengan udara sejuk pegunungan, villa ini sangat cocok untuk liburan keluarga maupun rombongan. Dilengkapi kolam renang privat, 3 kamar tidur luas, dan berbagai fasilitas modern. Nikmati keindahan alam Glamping Tawangmangu dari villa eksklusif kami.","address":"Sekipan, Tawangmangu","city":"Karanganyar","province":"Jawa Tengah","max_guests":25,"max_guests_note":"","extra_bed_price":150000,"extra_bed_note":"","checkin_time":"14.00 WIB","checkout_time":"12.00 WIB"},
   "facilities": [
     {"name":"Kolam Renang Privat","icon":"pool","description":"Kolam renang khusus tamu villa","sort_order":1},
     {"name":"WiFi","icon":"wifi","description":"Internet gratis seluruh area","sort_order":2},
@@ -2270,7 +2271,7 @@ Contoh output LENGKAP:
     "name": "Villa Diandra 2",
     "slug": "villa-diandra-2",
     "tagline": "Villa eksklusif dengan kolam renang privat",
-    "description": "Deskripsi lengkap villa...",
+    "description": "Villa Diandra 2 adalah villa eksklusif di kawasan Villa Tawangmangu yang menawarkan kenyamanan premium di udara sejuk pegunungan. Cocok untuk keluarga dan rombongan yang ingin menikmati suasana Glamping Tawangmangu yang asri. Tersedia kolam renang privat, kamar tidur luas, dan berbagai fasilitas lengkap untuk pengalaman menginap yang tak terlupakan.",
     "address": "Sekipan, Tawangmangu",
     "city": "Karanganyar",
     "province": "Jawa Tengah",
