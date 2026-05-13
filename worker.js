@@ -1685,16 +1685,16 @@ async function renderGallery() {
       <!-- Upload panel -->
       <div id="gal-upload" class="hidden card p-5 mb-5">
         <h4 class="font-semibold text-slate-700 mb-3">Upload ke GitHub</h4>
-        <div class="grid md:grid-cols-3 gap-3 items-end">
-          <div class="md:col-span-2"><label>Pilih Foto (semua format gambar didukung)</label>
-            <input id="gal-file" type="file" accept="image/*,image/heic,image/heif,image/bmp,image/tiff,image/svg+xml" style="padding:6px;"/></div>
-          <div><label>Keterangan (alt)</label><input id="gal-alt" placeholder="Kolam renang villa"/></div>
-          <div class="md:col-span-3 flex gap-3">
-            <button class="btn btn-primary" onclick="uploadPhoto()"><span class="material-symbols-outlined">cloud_upload</span>Upload</button>
-            <button class="btn btn-ghost" onclick="document.getElementById('gal-upload').classList.add('hidden')">Batal</button>
-          </div>
+        <div class="mb-3">
+          <label>Pilih Foto <span class="text-slate-400 font-normal">(bisa pilih beberapa sekaligus)</span></label>
+          <input id="gal-file" type="file" accept="image/*,image/heic,image/heif,image/bmp,image/tiff,image/svg+xml" multiple onchange="previewGalFiles(this)" style="padding:6px;"/>
         </div>
-        <p id="gal-status" class="text-xs text-slate-400 mt-2"></p>
+        <div id="gal-preview" class="hidden space-y-2 mb-4 max-h-72 overflow-y-auto pr-1"></div>
+        <div class="flex gap-3">
+          <button class="btn btn-primary" onclick="uploadPhoto()"><span class="material-symbols-outlined">cloud_upload</span>Upload Semua</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('gal-upload').classList.add('hidden');document.getElementById('gal-preview').classList.add('hidden');document.getElementById('gal-preview').innerHTML='';document.getElementById('gal-file').value=''">Batal</button>
+        </div>
+        <p id="gal-status" class="text-xs text-slate-400 mt-2 flex items-center gap-1"></p>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-3 gap-3">\${photos}</div>\`);
@@ -1724,33 +1724,67 @@ function compressImage(file, quality = 0.5) {
   });
 }
 
+function previewGalFiles(input) {
+  const preview = document.getElementById('gal-preview');
+  if (!input.files.length) { preview.classList.add('hidden'); preview.innerHTML = ''; return; }
+  const urls = [];
+  preview.innerHTML = Array.from(input.files).map((f, i) => {
+    const url = URL.createObjectURL(f);
+    urls.push(url);
+    const kb = (f.size / 1024).toFixed(0);
+    return \`<div class="flex items-center gap-3 p-2 bg-slate-50 rounded-lg border border-slate-100">
+      <img src="\${url}" class="w-14 h-14 object-cover rounded-lg flex-none bg-slate-200"/>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-medium text-slate-700 truncate mb-1">\${f.name} <span class="text-slate-400 font-normal">\${kb}KB</span></p>
+        <input id="gal-alt-\${i}" placeholder="Keterangan foto (opsional)" style="font-size:0.75rem;padding:4px 8px;width:100%;"/>
+      </div>
+    </div>\`;
+  }).join('');
+  preview.classList.remove('hidden');
+}
+
 async function uploadPhoto() {
   const fileInput = document.getElementById('gal-file');
-  const alt       = document.getElementById('gal-alt').value;
   const statusEl  = document.getElementById('gal-status');
   if (!fileInput.files.length) return showToast('Pilih file terlebih dahulu', 'error');
 
-  try {
-    statusEl.textContent = 'Mengompresi gambar...';
-    const compressed = await compressImage(fileInput.files[0], 0.5);
+  const files = Array.from(fileInput.files);
+  let success = 0, failed = 0;
+  const btn = document.querySelector('#gal-upload .btn-primary');
+  if (btn) btn.disabled = true;
 
-    const fd = new FormData();
-    fd.append('file', compressed);
-    fd.append('villa_id', villaId());
-    fd.append('alt', alt);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const altEl = document.getElementById(\`gal-alt-\${i}\`);
+    const alt   = altEl ? altEl.value : '';
+    statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> Mengompresi foto \${i+1}/\${files.length}…\`;
+    try {
+      const compressed = await compressImage(file, 0.5);
+      const fd = new FormData();
+      fd.append('file', compressed);
+      fd.append('villa_id', villaId());
+      fd.append('alt', alt);
+      statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> Mengupload foto \${i+1}/\${files.length}…\`;
+      const res = await fetch(getWorkerUrl() + '/upload/github', {
+        method: 'POST',
+        headers: { Authorization: \`Bearer \${S.token}\` },
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || \`HTTP \${res.status}\`);
+      success++;
+    } catch (e) {
+      failed++;
+      statusEl.textContent = \`Foto \${i+1} gagal: \${e.message}\`;
+      await new Promise(r => setTimeout(r, 1500));
+    }
+  }
 
-    statusEl.textContent = 'Mengupload...';
-    const res = await fetch(getWorkerUrl() + '/upload/github', {
-      method: 'POST',
-      headers: { Authorization: \`Bearer \${S.token}\` },
-      body: fd,
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || \`HTTP \${res.status}\`);
-    showToast('Foto berhasil diupload!', 'success');
-    statusEl.textContent = '';
-    renderGallery();
-  } catch (e) { statusEl.textContent = 'Gagal: ' + e.message; showToast(e.message, 'error'); }
+  if (btn) btn.disabled = false;
+  statusEl.textContent = '';
+  if (success) showToast(\`\${success} foto berhasil diupload!\`, 'success');
+  if (failed)  showToast(\`\${failed} foto gagal diupload\`, 'error');
+  renderGallery();
 }
 
 async function deleteGallery(id) {
