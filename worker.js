@@ -132,7 +132,7 @@ const COMMON_HEAD = `
   <meta charset="utf-8"/>
   <meta name="google-site-verification" content="oW9Fqr-5Hy84zT9hcd9At460aCcqaoWD9iSpre6tESU" />
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏡</text></svg>"/>
+  <link rel="icon" href="https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778673470866.jpg" type="image/jpeg"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -262,7 +262,10 @@ function renderIndexPage(villas, coverMap, contactMap, globalWa) {
 <body>
 <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background:transparent">
   <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-    <a href="/" class="font-serif text-lg tracking-widest text-white font-bold" id="nav-brand">VILLA TAWANGMANGU</a>
+    <a href="/" class="flex items-center gap-2.5" id="nav-brand">
+        <img src="https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778673470866.jpg" alt="Logo Villa Tawangmangu" style="width:36px;height:36px;object-fit:cover;border-radius:50%;border:2px solid rgba(255,255,255,0.4);flex-shrink:0;"/>
+        <span class="font-serif text-lg tracking-widest text-white font-bold">VILLA TAWANGMANGU</span>
+      </a>
     <a href="/admin" class="text-[10px] tracking-widest uppercase font-semibold text-white/60 hover:text-white transition-colors flex items-center gap-1.5">
       <span class="material-symbols-outlined" style="font-size:16px">admin_panel_settings</span>Admin
     </a>
@@ -632,7 +635,10 @@ function renderVillaPage(v, facilities, gallery, policies, contacts) {
 <a class="wa-float" href="${wa}" target="_blank" rel="noopener" title="Hubungi via WhatsApp">${WA_SVG}</a>
 <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background:transparent">
   <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-    <a href="/" class="font-serif text-lg tracking-widest text-white" id="nav-logo">${esc((v.name||"VILLA TAWANGMANGU").toUpperCase())}</a>
+    <a href="/" class="flex items-center gap-2.5" id="nav-logo">
+        <img src="https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778673470866.jpg" alt="Logo" style="width:36px;height:36px;object-fit:cover;border-radius:50%;border:2px solid rgba(255,255,255,0.4);flex-shrink:0;"/>
+        <span class="font-serif text-lg tracking-widest text-white">${esc((v.name||"VILLA TAWANGMANGU").toUpperCase())}</span>
+      </a>
     <div class="hidden md:flex items-center gap-8" id="nav-links">
       <a href="#about"      class="text-[11px] tracking-widest uppercase font-semibold text-white/80 hover:text-white transition-colors">Villa</a>
       <a href="#facilities" class="text-[11px] tracking-widest uppercase font-semibold text-white/80 hover:text-white transition-colors">Fasilitas</a>
@@ -859,6 +865,7 @@ const ADMIN_HTML = `<!DOCTYPE html>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Dashboard — Villa</title>
+  <link rel="icon" href="https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778673470866.jpg" type="image/jpeg"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -986,9 +993,12 @@ const ADMIN_HTML = `<!DOCTYPE html>
   <!-- Sidebar -->
   <aside id="sidebar" class="w-56 bg-white border-r border-slate-100 flex flex-col flex-shrink-0 h-screen overflow-y-auto">
     <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-      <div>
-        <div class="font-bold text-slate-800 text-base">Villa Admin</div>
-        <div id="sidebar-user" class="text-xs text-slate-400 mt-0.5"></div>
+      <div class="flex items-center gap-2.5">
+        <img src="https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778673470866.jpg" alt="Logo" style="width:32px;height:32px;object-fit:cover;border-radius:50%;flex-shrink:0;"/>
+        <div>
+          <div class="font-bold text-slate-800 text-base">Villa Admin</div>
+          <div id="sidebar-user" class="text-xs text-slate-400 mt-0.5"></div>
+        </div>
       </div>
       <button onclick="closeSidebar()" class="md:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
         <span class="material-symbols-outlined" style="font-size:20px;">close</span>
