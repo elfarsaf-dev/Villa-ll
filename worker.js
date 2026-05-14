@@ -572,17 +572,17 @@ function renderVillaPage(v, facilities, gallery, policies, contacts, similarVill
   return `<!DOCTYPE html>
 <html class="light" lang="id">
 <head>
-  <title>${esc(v.name)} — Villa Tawangmangu</title>
+  <title>${esc(v.tagline || v.name)} — Villa Tawangmangu</title>
   <meta name="description" content="${esc(v.tagline||v.description||"Sewa villa eksklusif di Tawangmangu")}"/>
   <meta name="keywords" content="villa tawangmangu, ${esc(v.name)}, sewa villa tawangmangu, villa sekipan"/>
-  <meta property="og:title" content="${esc(v.name)} — Villa Tawangmangu"/>
+  <meta property="og:title" content="${esc(v.tagline || v.name)} — Villa Tawangmangu"/>
   <meta property="og:description" content="${esc(v.tagline||v.description||"")}"/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://tawangmangu.biz.id/villa/${esc(v.slug||"")}"/>
   <meta property="og:site_name" content="Villa Tawangmangu"/>
   ${gallery[0]?`<meta property="og:image" content="${esc(gallery[0].url)}"/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/>`:``}
   <meta name="twitter:card" content="summary_large_image"/>
-  <meta name="twitter:title" content="${esc(v.name)} — Villa Tawangmangu"/>
+  <meta name="twitter:title" content="${esc(v.tagline || v.name)} — Villa Tawangmangu"/>
   <meta name="twitter:description" content="${esc(v.tagline||v.description||"")}"/>
   ${gallery[0]?`<meta name="twitter:image" content="${esc(gallery[0].url)}"/>`:``}
   <link rel="canonical" href="https://tawangmangu.biz.id/villa/${esc(v.slug||"")}"/>
