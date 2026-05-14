@@ -208,7 +208,7 @@ function renderIndexPage(villas, coverMap, contactMap, globalWa) {
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://tawangmangu.biz.id/"/>
   <meta property="og:site_name" content="Villa Tawangmangu"/>
-  ${villas[0]&&coverMap[villas[0].id]?`<meta property="og:image" content="${esc(coverMap[villas[0].id].url)}"/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/>`:``}
+  <meta property="og:image" content="https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778407511114.jpg"/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/>
   <meta name="twitter:card" content="summary_large_image"/>
   <link rel="canonical" href="https://tawangmangu.biz.id/"/>
   <meta name="robots" content="index, follow"/>
