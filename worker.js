@@ -494,7 +494,7 @@ document.getElementById('ai-in').addEventListener('keydown',function(e){
 }
 
 // ── SSR: Villa detail page ────────────────────────────────────────────────────
-function renderVillaPage(v, facilities, gallery, policies, contacts) {
+function renderVillaPage(v, facilities, gallery, policies, contacts, similarVillas = []) {
   const location    = [v.address, v.city, v.province].filter(Boolean).join(", ");
   const waContact   = contacts.find(c => c.type === "whatsapp" && c.is_primary) || contacts.find(c => c.type === "whatsapp");
   const phoneContact = contacts.find(c => c.type === "phone");
@@ -782,6 +782,44 @@ function renderVillaPage(v, facilities, gallery, policies, contacts) {
     <div class="mt-10 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-center gap-8 text-center text-white">${contactInfoHtml}</div>
   </div>
 </section>
+${similarVillas.length ? `
+<section id="villa-serupa" class="py-20 px-6 bg-surface">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-12">
+      <span class="text-[10px] tracking-[0.2em] uppercase font-semibold text-secondary block mb-3">Rekomendasi</span>
+      <h2 class="font-serif text-3xl text-primary">Villa Serupa yang Mungkin Anda Suka</h2>
+      <p class="text-on-surface-variant text-sm mt-3 max-w-md mx-auto">Villa lain di Tawangmangu dengan kapasitas dan fasilitas serupa</p>
+      <div class="flex items-center justify-center mt-4"><div class="w-12 h-[1px] bg-outline-variant"></div><div class="w-1.5 h-1.5 rounded-full bg-primary/30 mx-3"></div><div class="w-12 h-[1px] bg-outline-variant"></div></div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
+      ${similarVillas.map(sv => {
+        const href = `/villa/${encodeURIComponent(sv.slug)}`;
+        const loc  = [sv.city, sv.province].filter(Boolean).join(", ");
+        return `<a href="${href}" class="sim-card group bg-white rounded-2xl overflow-hidden border border-outline-variant hover:shadow-lg transition-all duration-300 hover:-translate-y-1 block">
+          <div class="overflow-hidden" style="height:140px">
+            ${sv.cover
+              ? `<img src="${esc(sv.cover.url)}" alt="${esc(sv.cover.alt || sv.name)}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"/>`
+              : `<div class="w-full h-full bg-surface-container-highest flex items-center justify-center"><span class="material-symbols-outlined text-outline" style="font-size:40px">villa</span></div>`}
+          </div>
+          <div class="p-4">
+            <h3 class="font-serif text-[0.9375rem] text-primary leading-snug mb-1 line-clamp-1">${esc(sv.name)}</h3>
+            ${loc ? `<p class="text-[0.7rem] text-secondary tracking-wide mb-2">${esc(loc)}</p>` : ""}
+            <div class="flex items-center gap-3 text-[0.72rem] text-on-surface-variant">
+              ${sv.max_guests ? `<span class="flex items-center gap-1"><span class="material-symbols-outlined" style="font-size:12px">groups</span>Maks. ${esc(String(sv.max_guests))} orang</span>` : ""}
+            </div>
+            ${sv.tagline ? `<p class="text-[0.75rem] text-on-surface-variant mt-2 line-clamp-2 leading-relaxed">${esc(sv.tagline)}</p>` : ""}
+            <div class="mt-3 text-[0.75rem] font-semibold text-primary flex items-center gap-1">Lihat Detail <span class="material-symbols-outlined" style="font-size:14px">arrow_forward</span></div>
+          </div>
+        </a>`;
+      }).join("")}
+    </div>
+    <div class="text-center mt-10">
+      <a href="/" class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-primary/30 text-primary text-sm font-semibold hover:bg-primary hover:text-white transition-all duration-200">
+        <span class="material-symbols-outlined" style="font-size:18px">villa</span>Lihat Semua Villa
+      </a>
+    </div>
+  </div>
+</section>` : ""}
 <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-primary text-white px-6 py-3 rounded-lg text-sm shadow-xl transition-all duration-300 opacity-0 pointer-events-none translate-y-2 whitespace-nowrap z-50"></div>
 <footer class="px-6" style="background:#ecefec;border-top:1px solid #bfc9c1">
   <div class="max-w-6xl mx-auto py-10">
@@ -2763,16 +2801,35 @@ export default {
         const rows = await sb(env, "villa_info", "GET", `slug=eq.${encodeURIComponent(slug)}&select=*&limit=1`);
         if (!rows.length) return html(`<!DOCTYPE html><html lang="id"><head><title>404</title></head><body style="font-family:sans-serif;text-align:center;padding:60px"><h1>Villa Tidak Ditemukan</h1><p><a href="/">← Kembali</a></p></body></html>`, 404);
         const v = rows[0];
-        const [facilities, gallery, policies, villaContacts, globalContacts] = await Promise.all([
+        const [facilities, gallery, policies, villaContacts, globalContacts, allVillas] = await Promise.all([
           sb(env, "facilities", "GET", `villa_id=eq.${v.id}&is_active=eq.true&order=sort_order.asc`),
           sb(env, "gallery",    "GET", `villa_id=eq.${v.id}&is_active=eq.true&order=sort_order.asc`),
           sb(env, "policies",   "GET", `villa_id=eq.${v.id}&order=sort_order.asc`),
           sb(env, "contacts",   "GET", `villa_id=eq.${v.id}`),
           sb(env, "contacts",   "GET", "villa_id=is.null"),
+          sb(env, "villa_info", "GET", `id=neq.${v.id}&select=id,name,slug,tagline,max_guests,city,province&order=created_at.asc`),
         ]);
         const merged = [...villaContacts];
         for (const gc of globalContacts) if (!merged.some(c => c.type === gc.type)) merged.push(gc);
-        return html(renderVillaPage(v, facilities, gallery, policies, merged));
+
+        // Similar villas: sort by capacity proximity, max 8
+        const cap = v.max_guests || 0;
+        const topSimilar = allVillas
+          .filter(x => x.slug)
+          .sort((a, b) => Math.abs((a.max_guests||0) - cap) - Math.abs((b.max_guests||0) - cap))
+          .slice(0, 8);
+
+        // Fetch one cover image per similar villa in a single query
+        let similarVillas = topSimilar;
+        if (topSimilar.length) {
+          const ids = topSimilar.map(x => x.id).join(",");
+          const covers = await sb(env, "gallery", "GET", `villa_id=in.(${ids})&is_active=eq.true&order=sort_order.asc`);
+          const coverMap = {};
+          for (const img of covers) if (!coverMap[img.villa_id]) coverMap[img.villa_id] = img;
+          similarVillas = topSimilar.map(x => ({ ...x, cover: coverMap[x.id] || null }));
+        }
+
+        return html(renderVillaPage(v, facilities, gallery, policies, merged, similarVillas));
       }
 
       // ── Redirect: /villa.html?slug=X → /villa/X ─────────────────

@@ -56,11 +56,6 @@ externalPort = 3001
 localPort = 18111
 externalPort = 3000
 
-[userenv]
-
-[userenv.shared]
-SUPABASE_URL = "https://bgwkwlrkvbspycqsdeif.supabase.co"
-SUPABASE_KEY = "sb_publishable_2ox7OQXXg6FD-ogtiDyxfA_eGdUo5Jl"
 
 [nix]
 channel = "stable-25_05"
