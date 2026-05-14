@@ -173,7 +173,7 @@ function renderIndexPage(villas, coverMap, contactMap, globalWa) {
     const href = v.slug ? `/villa/${encodeURIComponent(v.slug)}` : `/villa/?id=${v.id}`;
     return `<div class="villa-card">
       <a href="${href}" class="card-img block overflow-hidden" style="height:220px;">
-        ${cover ? `<img src="${esc(cover.url)}" alt="${esc(cover.alt || v.name)}" class="w-full h-full object-cover"/>` : `<div class="w-full h-full bg-surface-container-highest flex items-center justify-center"><span class="material-symbols-outlined text-outline" style="font-size:56px;">villa</span></div>`}
+        ${cover ? `<img src="${esc(cover.url)}" alt="${esc(cover.alt || v.name + ' Tawangmangu')}" class="w-full h-full object-cover"/>` : `<div class="w-full h-full bg-surface-container-highest flex items-center justify-center"><span class="material-symbols-outlined text-outline" style="font-size:56px;">villa</span></div>`}
       </a>
       <div class="card-body p-5">
         <div class="flex items-start justify-between gap-2 mb-2">
@@ -505,7 +505,7 @@ function renderVillaPage(v, facilities, gallery, policies, contacts, similarVill
 
   const slides = gallery.slice(0, 5);
   const heroSlides = slides.length
-    ? slides.map((img, i) => `<div class="flex-none w-full h-full snap-start relative"><img class="w-full h-full object-cover" src="${esc(img.url)}" alt="${esc(img.alt||"")}" ${i>0?'loading="lazy"':""}/><div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/70"></div></div>`).join("")
+    ? slides.map((img, i) => `<div class="flex-none w-full h-full snap-start relative"><img class="w-full h-full object-cover" src="${esc(img.url)}" alt="${esc(img.alt||v.name+' — Tawangmangu')}" ${i>0?'loading="lazy"':""}/><div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/70"></div></div>`).join("")
     : `<div class="flex-none w-full h-full snap-start relative bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-white/20" style="font-size:100px">villa</span><div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/70"></div></div>`;
 
   const dots = slides.length > 1
@@ -541,7 +541,7 @@ function renderVillaPage(v, facilities, gallery, policies, contacts, similarVill
     : gallery.map((img, i) => {
         const cls = i===0 ? "col-span-2 md:col-span-1 md:row-span-2" : (i===gallery.length-1&&gallery.length%2===0?"col-span-2":"");
         const h   = i===0 ? "h-60 md:h-full" : "h-52";
-        return `<div class="img-zoom overflow-hidden rounded-xl ${cls}"><img src="${esc(img.url)}" alt="${esc(img.alt||"")}" class="w-full ${h} object-cover" loading="lazy"/></div>`;
+        return `<div class="img-zoom overflow-hidden rounded-xl ${cls}"><img src="${esc(img.url)}" alt="${esc(img.alt||v.name+' — Tawangmangu')}" class="w-full ${h} object-cover" loading="lazy"/></div>`;
       }).join("");
 
   const schedules    = policies.filter(p => p.type === "schedule");
@@ -798,7 +798,7 @@ ${similarVillas.length ? `
         return `<a href="${href}" class="sim-card group bg-white rounded-2xl overflow-hidden border border-outline-variant hover:shadow-lg transition-all duration-300 hover:-translate-y-1 block">
           <div class="overflow-hidden" style="height:140px">
             ${sv.cover
-              ? `<img src="${esc(sv.cover.url)}" alt="${esc(sv.cover.alt || sv.name)}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"/>`
+              ? `<img src="${esc(sv.cover.url)}" alt="${esc(sv.cover.alt || sv.name + ' Tawangmangu')}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"/>`
               : `<div class="w-full h-full bg-surface-container-highest flex items-center justify-center"><span class="material-symbols-outlined text-outline" style="font-size:40px">villa</span></div>`}
           </div>
           <div class="p-4">
