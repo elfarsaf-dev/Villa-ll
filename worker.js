@@ -133,6 +133,12 @@ const COMMON_HEAD = `
   <meta name="google-site-verification" content="oW9Fqr-5Hy84zT9hcd9At460aCcqaoWD9iSpre6tESU" />
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
   <link rel="icon" href="https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778673470866.jpg" type="image/jpeg"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#1e3a2f"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Villa Tawangmangu"/>
+  <link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778673470866.jpg"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -212,6 +218,12 @@ function renderIndexPage(villas, coverMap, contactMap, globalWa) {
   <meta name="twitter:card" content="summary_large_image"/>
   <link rel="canonical" href="https://tawangmangu.biz.id/"/>
   <meta name="robots" content="index, follow"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#1e3a2f"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Villa Tawangmangu"/>
+  <link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778407511114.jpg"/>
   <script type="application/ld+json">${JSON.stringify({
     "@context":"https://schema.org",
     "@type":"WebSite",
@@ -490,6 +502,7 @@ document.getElementById('ai-in').addEventListener('keydown',function(e){
   },{passive:true});
 })();
 </script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 </body></html>`;
 }
 
@@ -892,6 +905,7 @@ document.getElementById('inquiry-form').addEventListener('submit',async(e)=>{
   btn.textContent='Kirim Permintaan Reservasi';btn.disabled=false;e.target.reset();
 });
 </script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 </body></html>`;
 }
 
@@ -904,6 +918,12 @@ const ADMIN_HTML = `<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Dashboard — Villa</title>
   <link rel="icon" href="https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778673470866.jpg" type="image/jpeg"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#1e3a2f"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Admin Villa"/>
+  <link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778673470866.jpg"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -2683,6 +2703,7 @@ if (S.token && S.user) {
   enterDashboard();
 }
 </script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 </body>
 </html>
 `;
@@ -2750,6 +2771,56 @@ export default {
         const aiData = await aiRes.json();
         if (!aiRes.ok) return json({ error: aiData.error?.message || "OpenRouter error" }, 502);
         return json({ reply: aiData.choices?.[0]?.message?.content ?? "" });
+      }
+
+      // ── MANIFEST.JSON ───────────────────────────────────────────
+      if (method === "GET" && path === "/manifest.json") {
+        const manifest = {
+          name: "Villa Tawangmangu",
+          short_name: "Villa TWM",
+          description: "Sewa villa eksklusif di Sekipan, Tawangmangu, Karanganyar",
+          start_url: "/",
+          scope: "/",
+          display: "standalone",
+          background_color: "#f8faf8",
+          theme_color: "#1e3a2f",
+          orientation: "portrait-primary",
+          icons: [
+            { src: "https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778673470866.jpg", sizes: "192x192", type: "image/jpeg", purpose: "any" },
+            { src: "https://cdn.jsdelivr.net/gh/SAFELFAR05/Up@main/images/villas/a1b2c3d4-e5f6-7890-abcd-ef1234567890/1778673470866.jpg", sizes: "512x512", type: "image/jpeg", purpose: "any maskable" },
+          ],
+          shortcuts: [
+            { name: "Lihat Villa", url: "/", icons: [] },
+            { name: "Admin", url: "/admin/", icons: [] },
+          ],
+        };
+        return new Response(JSON.stringify(manifest), {
+          headers: { "Content-Type": "application/manifest+json", "Cache-Control": "public, max-age=86400" }
+        });
+      }
+
+      // ── SERVICE WORKER ───────────────────────────────────────────
+      if (method === "GET" && path === "/sw.js") {
+        const sw = `const CACHE='villa-twm-v1';const SHELL=['/'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
+self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET')return;
+  const u=new URL(e.request.url);
+  const skip=['/api/','/auth/','/villas','/inquiries','/upload','/admin','/sw.js','/manifest.json'];
+  if(skip.some(s=>u.pathname.startsWith(s)))return;
+  e.respondWith(
+    fetch(e.request).then(res=>{
+      if(res.ok&&(u.pathname==='/'||u.pathname.startsWith('/villa/'))){
+        caches.open(CACHE).then(c=>c.put(e.request,res.clone()));
+      }
+      return res;
+    }).catch(()=>caches.match(e.request).then(r=>r||caches.match('/')))
+  );
+});`;
+        return new Response(sw, {
+          headers: { "Content-Type": "application/javascript", "Cache-Control": "no-cache, no-store" }
+        });
       }
 
       // ── ROBOTS.TXT ──────────────────────────────────────────────
