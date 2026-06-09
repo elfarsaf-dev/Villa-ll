@@ -1769,26 +1769,34 @@ async function renderGallery() {
   } catch (e) { setContent(\`<div class="text-red-500 text-center pt-20">\${e.message}</div>\`); }
 }
 
-function compressImage(file, quality = 0.5) {
+function compressImage(file, maxPx = 1920, quality = 0.82) {
   return new Promise((resolve) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width  = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        canvas.toBlob(blob => {
-          if (!blob) return resolve(file);
-          resolve(new File([blob], file.name.replace(/\\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
-        }, 'image/jpeg', quality);
-      } catch { resolve(file); }
+    const reader = new FileReader();
+    reader.onerror = () => resolve(file);
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onerror = () => resolve(file);
+      img.onload = () => {
+        try {
+          let w = img.naturalWidth, h = img.naturalHeight;
+          if (w > maxPx || h > maxPx) {
+            if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
+            else        { w = Math.round(w * maxPx / h); h = maxPx; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          canvas.toBlob(blob => {
+            if (blob) return resolve(new File([blob], file.name.replace(/\\.[^.]+$/, '.webp'), { type: 'image/webp' }));
+            canvas.toBlob(b2 => {
+              resolve(b2 ? new File([b2], file.name.replace(/\\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }) : file);
+            }, 'image/jpeg', quality);
+          }, 'image/webp', quality);
+        } catch { resolve(file); }
+      };
+      img.src = ev.target.result;
     };
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
-    img.src = url;
+    reader.readAsDataURL(file);
   });
 }
 
@@ -3167,7 +3175,8 @@ self.addEventListener('fetch',e=>{
         if (!file)    return json({ error: "File tidak ada" }, 400);
         if (!villaId) return json({ error: "villa_id wajib diisi" }, 400);
         if (!canAccessVilla(u, villaId)) return json({ error: "Forbidden" }, 403);
-        const ext  = (file.name?.split(".").pop() || "jpg").toLowerCase();
+        const mimeToExt = { "image/webp": "webp", "image/png": "png", "image/gif": "gif", "image/jpeg": "jpg", "image/jpg": "jpg" };
+        const ext = mimeToExt[file.type] || (file.name?.split(".").pop() || "jpg").toLowerCase().replace("jpeg","jpg");
         const imgPath = `${env.GITHUB_IMG_PATH||"images/villas"}/${villaId}/${Date.now()}.${ext}`;
         const buf  = await file.arrayBuffer();
         // chunk-based base64 — aman untuk file besar (hindari stack overflow saat spread)
