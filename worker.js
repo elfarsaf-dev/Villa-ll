@@ -2102,7 +2102,8 @@ ATURAN WAJIB:
 6. max_guests dan extra_bed_price harus integer
 7. LOKASI FALLBACK: Jika alamat/kota/provinsi tidak disebutkan atau tidak jelas, wajib isi: address="Tawangmangu", city="Karanganyar", province="Jawa Tengah"
 8. WAJIB: villa_info.description HARUS menyebut "Villa Tawangmangu" atau "Glamping Tawangmangu" minimal satu kali secara alami dalam kalimat (contoh: "... berlokasi di kawasan Villa Tawangmangu yang sejuk..." atau "... tersedia pilihan Glamping Tawangmangu yang asri...")
-9. Jawab HANYA JSON mentah\`;
+9. HARGA/TARIF: Jika teks menyebut harga atau tarif sewa dalam bentuk apapun (harga per malam, tarif weekday, tarif weekend, tarif high season, paket, dll), WAJIB masukkan informasi harga tersebut secara NATURAL dan LENGKAP ke dalam villa_info.description agar mudah diindeks Google. Contoh: "...villa ini tersedia dengan harga sewa Rp 2.500.000 per malam (weekday) dan Rp 3.500.000 per malam (weekend)...". Tulis semua rentang harga yang disebutkan. Jangan hilangkan info harga dari deskripsi.
+10. Jawab HANYA JSON mentah\`;
 
   const message = \`Ekstrak info villa dari teks ini:\\n\\n\${rawText}\`;
 
@@ -2410,7 +2411,8 @@ ATURAN WAJIB:
 8. contacts.value: format 08xxx (tanpa +62 atau 62)
 9. LOKASI FALLBACK: Jika alamat/kota/provinsi tidak disebutkan atau tidak jelas, wajib isi: address="Tawangmangu", city="Karanganyar", province="Jawa Tengah"
 10. WAJIB: villa_info.description HARUS menyebut "Villa Tawangmangu" atau "Glamping Tawangmangu" minimal satu kali secara alami dalam kalimat (contoh: "... berlokasi di kawasan Villa Tawangmangu yang sejuk..." atau "... tersedia pilihan Glamping Tawangmangu yang asri...")
-11. Jawab HANYA JSON mentah, tidak ada teks lain sebelum atau sesudah JSON\`;
+11. HARGA/TARIF: Jika teks menyebut harga atau tarif sewa dalam bentuk apapun (harga per malam, tarif weekday, tarif weekend, tarif high season, paket, dll), WAJIB masukkan informasi harga tersebut secara NATURAL dan LENGKAP ke dalam villa_info.description agar mudah diindeks Google. Contoh: "...villa ini tersedia dengan harga sewa Rp 2.500.000 per malam (weekday) dan Rp 3.500.000 per malam (weekend)...". Tulis semua rentang harga yang disebutkan. Jangan hilangkan info harga dari deskripsi.
+12. Jawab HANYA JSON mentah, tidak ada teks lain sebelum atau sesudah JSON\`;
 
   const message = \`Ekstrak data villa dari teks berikut dan kembalikan JSON sesuai skema:\\n\\n\${rawText}\`;
 
