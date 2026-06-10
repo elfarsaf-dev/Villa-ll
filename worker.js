@@ -1771,29 +1771,48 @@ async function renderGallery() {
 
 function compressImage(file, maxPx = 1280, quality = 0.78) {
   return new Promise((resolve) => {
-    // createObjectURL = pointer saja, tidak copy ke memori — aman untuk file besar di Android
+    const kb = (file.size / 1024).toFixed(0);
+    console.log(\`[compress] START "\${file.name}" type=\${file.type} size=\${kb}KB\`);
     const url = URL.createObjectURL(file);
     const img = new Image();
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      console.warn(\`[compress] img.onerror — fallback ke file asli\`, e);
+      resolve(file);
+    };
     img.onload = () => {
       URL.revokeObjectURL(url);
       try {
         let w = img.naturalWidth, h = img.naturalHeight;
+        console.log(\`[compress] dimensi asli \${w}x\${h}\`);
         if (w > maxPx || h > maxPx) {
           if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
           else        { w = Math.round(w * maxPx / h); h = maxPx; }
+          console.log(\`[compress] resize → \${w}x\${h}\`);
         }
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         canvas.toBlob(blob => {
-          if (!blob) return resolve(file);
+          if (!blob) {
+            console.warn(\`[compress] toBlob null — fallback ke file asli\`);
+            return resolve(file);
+          }
           const name = file.name.replace(/\\.[^.]+$/, '.webp');
           const out  = new File([blob], name, { type: 'image/webp' });
-          // pakai hasil kompresi hanya jika lebih kecil dari aslinya
-          resolve(out.size < file.size ? out : file);
+          const kbOut = (out.size / 1024).toFixed(0);
+          if (out.size < file.size) {
+            console.log(\`[compress] OK \${kb}KB → \${kbOut}KB WebP (\${Math.round(100-out.size/file.size*100)}% lebih kecil)\`);
+            resolve(out);
+          } else {
+            console.warn(\`[compress] WebP (\${kbOut}KB) >= asli (\${kb}KB) — pakai file asli\`);
+            resolve(file);
+          }
         }, 'image/webp', quality);
-      } catch { resolve(file); }
+      } catch (e) {
+        console.error(\`[compress] catch error\`, e);
+        resolve(file);
+      }
     };
     img.src = url;
   });
@@ -1834,21 +1853,26 @@ async function uploadPhoto() {
     const alt   = altEl ? altEl.value : '';
     statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> Mengompresi foto \${i+1}/\${files.length}…\`;
     try {
-      const compressed = await compressImage(file, 0.5);
+      const compressed = await compressImage(file);
+      const kbOri = (file.size/1024).toFixed(0), kbCmp = (compressed.size/1024).toFixed(0);
+      console.log(\`[upload] foto \${i+1} — asli: \${kbOri}KB, setelah compress: \${kbCmp}KB (\${compressed.type})\`);
       const fd = new FormData();
       fd.append('file', compressed);
       fd.append('villa_id', villaId());
       fd.append('alt', alt);
-      statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> Mengupload foto \${i+1}/\${files.length}…\`;
+      statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> Mengupload foto \${i+1}/\${files.length} (\${kbCmp}KB)…\`;
+      console.log(\`[upload] fetch POST /upload/github — file: \${compressed.name} \${kbCmp}KB\`);
       const res = await fetch(getWorkerUrl() + '/upload/github', {
         method: 'POST',
         headers: { Authorization: \`Bearer \${S.token}\` },
         body: fd,
       });
       const data = await res.json();
+      console.log(\`[upload] response \${res.status}\`, data);
       if (!res.ok) throw new Error(data.error || \`HTTP \${res.status}\`);
       success++;
     } catch (e) {
+      console.error(\`[upload] foto \${i+1} GAGAL:\`, e);
       failed++;
       statusEl.textContent = \`Foto \${i+1} gagal: \${e.message}\`;
       await new Promise(r => setTimeout(r, 1500));
