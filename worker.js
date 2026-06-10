@@ -1795,19 +1795,20 @@ function compressImage(file, maxPx = 1280) {
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        // Coba WebP dan JPEG bersamaan, pakai yang paling kecil
-        canvas.toBlob(webpBlob => {
-          canvas.toBlob(jpegBlob => {
-            const candidates = [];
-            if (webpBlob) candidates.push(new File([webpBlob], file.name.replace(/\\.[^.]+$/, '.webp'), { type: 'image/webp' }));
-            if (jpegBlob) candidates.push(new File([jpegBlob], file.name.replace(/\\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
-            candidates.push(file);
-            const best = candidates.sort((a, b) => a.size - b.size)[0];
-            const kbBest = (best.size / 1024).toFixed(0);
-            console.log(\`[compress] hasil terbaik: \${best.type} \${kbBest}KB (hemat \${Math.max(0,Math.round(100-best.size/file.size*100))}%)\`);
-            resolve(best);
-          }, 'image/jpeg', 0.72);
-        }, 'image/webp', 0.55);
+        // Sequential toBlob — lebih hemat memori di Android (tidak nested)
+        const toBlob = (type, q) => new Promise(res => canvas.toBlob(res, type, q));
+        toBlob('image/webp', 0.55).then(webpBlob => toBlob('image/jpeg', 0.72).then(jpegBlob => {
+          // Bebaskan memori canvas setelah selesai
+          canvas.width = 1; canvas.height = 1;
+          const candidates = [];
+          if (webpBlob) candidates.push(new File([webpBlob], file.name.replace(/\\.[^.]+$/, '.webp'), { type: 'image/webp' }));
+          if (jpegBlob) candidates.push(new File([jpegBlob], file.name.replace(/\\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+          candidates.push(file);
+          const best = candidates.sort((a, b) => a.size - b.size)[0];
+          const kbBest = (best.size / 1024).toFixed(0);
+          console.log(\`[compress] hasil terbaik: \${best.type} \${kbBest}KB (hemat \${Math.max(0,Math.round(100-best.size/file.size*100))}%)\`);
+          resolve(best);
+        }));
       } catch (e) {
         console.error(\`[compress] catch error\`, e);
         resolve(file);
@@ -1876,6 +1877,8 @@ async function uploadPhoto() {
       statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;color:#dc2626">error</span> [Foto \${i+1}/\${files.length}] Gagal: \${e.message}\`;
       await new Promise(r => setTimeout(r, 2000));
     }
+    // Jeda antar file — beri waktu Android GC bersihkan memori canvas
+    if (i < files.length - 1) await new Promise(r => setTimeout(r, 300));
   }
 
   if (btn) btn.disabled = false;
