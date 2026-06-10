@@ -1842,10 +1842,22 @@ async function uploadPhoto() {
   const statusEl  = document.getElementById('gal-status');
   if (!fileInput.files.length) return showToast('Pilih file terlebih dahulu', 'error');
 
-  const files = Array.from(fileInput.files);
+  const rawFiles = Array.from(fileInput.files);
   let success = 0, failed = 0;
   const btn = document.querySelector('#gal-upload .btn-primary');
   if (btn) btn.disabled = true;
+
+  // Baca semua file ke memori sekarang — sebelum izin Android file picker expired
+  statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> Membaca \${rawFiles.length} file…\`;
+  const files = await Promise.all(rawFiles.map(async (f, idx) => {
+    try {
+      const buf = await f.arrayBuffer();
+      return new File([buf], f.name, { type: f.type });
+    } catch {
+      console.warn(\`[upload] gagal baca file \${idx+1} ke memori, pakai referensi asli\`);
+      return f;
+    }
+  }));
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
