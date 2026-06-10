@@ -1795,20 +1795,19 @@ function compressImage(file, maxPx = 1280) {
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        // Sequential toBlob — lebih hemat memori di Android (tidak nested)
-        const toBlob = (type, q) => new Promise(res => canvas.toBlob(res, type, q));
-        toBlob('image/webp', 0.55).then(webpBlob => toBlob('image/jpeg', 0.72).then(jpegBlob => {
-          // Bebaskan memori canvas setelah selesai
-          canvas.width = 1; canvas.height = 1;
-          const candidates = [];
-          if (webpBlob) candidates.push(new File([webpBlob], file.name.replace(/\\.[^.]+$/, '.webp'), { type: 'image/webp' }));
-          if (jpegBlob) candidates.push(new File([jpegBlob], file.name.replace(/\\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
-          candidates.push(file);
-          const best = candidates.sort((a, b) => a.size - b.size)[0];
-          const kbBest = (best.size / 1024).toFixed(0);
-          console.log(\`[compress] hasil terbaik: \${best.type} \${kbBest}KB (hemat \${Math.max(0,Math.round(100-best.size/file.size*100))}%)\`);
-          resolve(best);
-        }));
+        // Coba WebP dan JPEG bersamaan, pakai yang paling kecil
+        canvas.toBlob(webpBlob => {
+          canvas.toBlob(jpegBlob => {
+            const candidates = [];
+            if (webpBlob) candidates.push(new File([webpBlob], file.name.replace(/\\.[^.]+$/, '.webp'), { type: 'image/webp' }));
+            if (jpegBlob) candidates.push(new File([jpegBlob], file.name.replace(/\\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+            candidates.push(file);
+            const best = candidates.sort((a, b) => a.size - b.size)[0];
+            const kbBest = (best.size / 1024).toFixed(0);
+            console.log(\`[compress] hasil terbaik: \${best.type} \${kbBest}KB (hemat \${Math.max(0,Math.round(100-best.size/file.size*100))}%)\`);
+            resolve(best);
+          }, 'image/jpeg', 0.72);
+        }, 'image/webp', 0.55);
       } catch (e) {
         console.error(\`[compress] catch error\`, e);
         resolve(file);
@@ -1842,25 +1841,10 @@ async function uploadPhoto() {
   const statusEl  = document.getElementById('gal-status');
   if (!fileInput.files.length) return showToast('Pilih file terlebih dahulu', 'error');
 
-  const rawFiles = Array.from(fileInput.files);
+  const files = Array.from(fileInput.files);
   let success = 0, failed = 0;
   const btn = document.querySelector('#gal-upload .btn-primary');
   if (btn) btn.disabled = true;
-
-  // Baca semua file ke memori secara sequential — sebelum izin Android file picker expired
-  statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> Membaca \${rawFiles.length} file…\`;
-  const files = [];
-  for (let idx = 0; idx < rawFiles.length; idx++) {
-    const f = rawFiles[idx];
-    try {
-      const buf = await f.arrayBuffer();
-      files.push(new File([buf], f.name, { type: f.type }));
-      console.log(\`[preread] file \${idx+1} OK — \${(buf.byteLength/1024).toFixed(0)}KB\`);
-    } catch (e) {
-      console.warn(\`[preread] gagal baca file \${idx+1}, pakai referensi asli\`, e);
-      files.push(f);
-    }
-  }
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -1874,7 +1858,7 @@ async function uploadPhoto() {
       const saved  = Math.round(100 - compressed.size/file.size*100);
       statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> [Foto \${i+1}/\${files.length}] Mengupload… \${kbOri}KB → \${kbCmp}KB\${isWebP ? ' (WebP' + (saved>0 ? ', hemat '+saved+'%' : '') + ')' : ''}\`;
       const fd = new FormData();
-      fd.append('file', compressed, compressed.name);
+      fd.append('file', compressed);
       fd.append('villa_id', villaId());
       fd.append('alt', alt);
       const res = await fetch(getWorkerUrl() + '/upload/github', {
@@ -1892,8 +1876,6 @@ async function uploadPhoto() {
       statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;color:#dc2626">error</span> [Foto \${i+1}/\${files.length}] Gagal: \${e.message}\`;
       await new Promise(r => setTimeout(r, 2000));
     }
-    // Jeda antar file — beri waktu Android GC bersihkan memori canvas
-    if (i < files.length - 1) await new Promise(r => setTimeout(r, 300));
   }
 
   if (btn) btn.disabled = false;
@@ -2851,14 +2833,14 @@ export default {
 
       // ── SERVICE WORKER ───────────────────────────────────────────
       if (method === "GET" && path === "/sw.js") {
-        const sw = `const CACHE='villa-twm-v2';const SHELL=['/'];
+        const sw = `const CACHE='villa-twm-v1';const SHELL=['/'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{
-  if(e.request.method!=='GET'){e.respondWith(fetch(e.request));return;}
+  if(e.request.method!=='GET')return;
   const u=new URL(e.request.url);
   const skip=['/api/','/auth/','/villas','/inquiries','/upload','/admin','/sw.js','/manifest.json'];
-  if(skip.some(s=>u.pathname.startsWith(s))){e.respondWith(fetch(e.request));return;}
+  if(skip.some(s=>u.pathname.startsWith(s)))return;
   e.respondWith(
     fetch(e.request).then(res=>{
       if(res.ok&&(u.pathname==='/'||u.pathname.startsWith('/villa/'))){
