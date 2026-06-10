@@ -1769,11 +1769,13 @@ async function renderGallery() {
   } catch (e) { setContent(\`<div class="text-red-500 text-center pt-20">\${e.message}</div>\`); }
 }
 
-function compressImage(file, maxPx = 1280, quality = 0.65) {
+function compressImage(file, maxPx = 1280) {
   return new Promise((resolve) => {
     const kb = (file.size / 1024).toFixed(0);
     console.log(\`[compress] START "\${file.name}" type=\${file.type} size=\${kb}KB\`);
-    const url = URL.createObjectURL(file);
+    let url;
+    try { url = URL.createObjectURL(file); }
+    catch (e) { console.warn('[compress] createObjectURL gagal', e); return resolve(file); }
     const img = new Image();
     img.onerror = (e) => {
       URL.revokeObjectURL(url);
@@ -1793,22 +1795,19 @@ function compressImage(file, maxPx = 1280, quality = 0.65) {
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        canvas.toBlob(blob => {
-          if (!blob) {
-            console.warn(\`[compress] toBlob null — fallback ke file asli\`);
-            return resolve(file);
-          }
-          const name = file.name.replace(/\\.[^.]+$/, '.webp');
-          const out  = new File([blob], name, { type: 'image/webp' });
-          const kbOut = (out.size / 1024).toFixed(0);
-          if (out.size < file.size) {
-            console.log(\`[compress] OK \${kb}KB → \${kbOut}KB WebP (\${Math.round(100-out.size/file.size*100)}% lebih kecil)\`);
-            resolve(out);
-          } else {
-            console.warn(\`[compress] WebP (\${kbOut}KB) >= asli (\${kb}KB) — pakai file asli\`);
-            resolve(file);
-          }
-        }, 'image/webp', quality);
+        // Coba WebP dan JPEG bersamaan, pakai yang paling kecil
+        canvas.toBlob(webpBlob => {
+          canvas.toBlob(jpegBlob => {
+            const candidates = [];
+            if (webpBlob) candidates.push(new File([webpBlob], file.name.replace(/\\.[^.]+$/, '.webp'), { type: 'image/webp' }));
+            if (jpegBlob) candidates.push(new File([jpegBlob], file.name.replace(/\\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+            candidates.push(file);
+            const best = candidates.sort((a, b) => a.size - b.size)[0];
+            const kbBest = (best.size / 1024).toFixed(0);
+            console.log(\`[compress] hasil terbaik: \${best.type} \${kbBest}KB (hemat \${Math.max(0,Math.round(100-best.size/file.size*100))}%)\`);
+            resolve(best);
+          }, 'image/jpeg', 0.72);
+        }, 'image/webp', 0.55);
       } catch (e) {
         console.error(\`[compress] catch error\`, e);
         resolve(file);
