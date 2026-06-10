@@ -1851,31 +1851,31 @@ async function uploadPhoto() {
     const file = files[i];
     const altEl = document.getElementById(\`gal-alt-\${i}\`);
     const alt   = altEl ? altEl.value : '';
-    statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> Mengompresi foto \${i+1}/\${files.length}…\`;
+    statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> [Foto \${i+1}/\${files.length}] Membaca gambar…\`;
     try {
       const compressed = await compressImage(file);
       const kbOri = (file.size/1024).toFixed(0), kbCmp = (compressed.size/1024).toFixed(0);
-      console.log(\`[upload] foto \${i+1} — asli: \${kbOri}KB, setelah compress: \${kbCmp}KB (\${compressed.type})\`);
+      const isWebP = compressed.type === 'image/webp';
+      const saved  = Math.round(100 - compressed.size/file.size*100);
+      statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> [Foto \${i+1}/\${files.length}] Mengupload… \${kbOri}KB → \${kbCmp}KB\${isWebP ? ' (WebP' + (saved>0?\`, hemat \${saved}%`:'')+')' : ''}\`;
       const fd = new FormData();
       fd.append('file', compressed);
       fd.append('villa_id', villaId());
       fd.append('alt', alt);
-      statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> Mengupload foto \${i+1}/\${files.length} (\${kbCmp}KB)…\`;
-      console.log(\`[upload] fetch POST /upload/github — file: \${compressed.name} \${kbCmp}KB\`);
       const res = await fetch(getWorkerUrl() + '/upload/github', {
         method: 'POST',
         headers: { Authorization: \`Bearer \${S.token}\` },
         body: fd,
       });
       const data = await res.json();
-      console.log(\`[upload] response \${res.status}\`, data);
       if (!res.ok) throw new Error(data.error || \`HTTP \${res.status}\`);
       success++;
+      statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;color:#16a34a">check_circle</span> [Foto \${i+1}/\${files.length}] Berhasil diupload (\${kbCmp}KB)\`;
     } catch (e) {
       console.error(\`[upload] foto \${i+1} GAGAL:\`, e);
       failed++;
-      statusEl.textContent = \`Foto \${i+1} gagal: \${e.message}\`;
-      await new Promise(r => setTimeout(r, 1500));
+      statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;color:#dc2626">error</span> [Foto \${i+1}/\${files.length}] Gagal: \${e.message}\`;
+      await new Promise(r => setTimeout(r, 2000));
     }
   }
 
