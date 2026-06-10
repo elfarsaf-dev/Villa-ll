@@ -1847,17 +1847,20 @@ async function uploadPhoto() {
   const btn = document.querySelector('#gal-upload .btn-primary');
   if (btn) btn.disabled = true;
 
-  // Baca semua file ke memori sekarang — sebelum izin Android file picker expired
+  // Baca semua file ke memori secara sequential — sebelum izin Android file picker expired
   statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> Membaca \${rawFiles.length} file…\`;
-  const files = await Promise.all(rawFiles.map(async (f, idx) => {
+  const files = [];
+  for (let idx = 0; idx < rawFiles.length; idx++) {
+    const f = rawFiles[idx];
     try {
       const buf = await f.arrayBuffer();
-      return new File([buf], f.name, { type: f.type });
-    } catch {
-      console.warn(\`[upload] gagal baca file \${idx+1} ke memori, pakai referensi asli\`);
-      return f;
+      files.push(new File([buf], f.name, { type: f.type }));
+      console.log(\`[preread] file \${idx+1} OK — \${(buf.byteLength/1024).toFixed(0)}KB\`);
+    } catch (e) {
+      console.warn(\`[preread] gagal baca file \${idx+1}, pakai referensi asli\`, e);
+      files.push(f);
     }
-  }));
+  }
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -1870,11 +1873,8 @@ async function uploadPhoto() {
       const isWebP = compressed.type === 'image/webp';
       const saved  = Math.round(100 - compressed.size/file.size*100);
       statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> [Foto \${i+1}/\${files.length}] Mengupload… \${kbOri}KB → \${kbCmp}KB\${isWebP ? ' (WebP' + (saved>0 ? ', hemat '+saved+'%' : '') + ')' : ''}\`;
-      // Bungkus ulang sebagai Blob baru — hindari stale reference di Android Chrome
-      const buf = await compressed.arrayBuffer();
-      const freshBlob = new Blob([buf], { type: compressed.type });
       const fd = new FormData();
-      fd.append('file', freshBlob, compressed.name);
+      fd.append('file', compressed, compressed.name);
       fd.append('villa_id', villaId());
       fd.append('alt', alt);
       const res = await fetch(getWorkerUrl() + '/upload/github', {
