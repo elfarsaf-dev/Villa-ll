@@ -1857,7 +1857,7 @@ async function uploadPhoto() {
       const kbOri = (file.size/1024).toFixed(0), kbCmp = (compressed.size/1024).toFixed(0);
       const isWebP = compressed.type === 'image/webp';
       const saved  = Math.round(100 - compressed.size/file.size*100);
-      statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> [Foto \${i+1}/\${files.length}] Mengupload… \${kbOri}KB → \${kbCmp}KB\${isWebP ? ' (WebP' + (saved>0?\`, hemat \${saved}%`:'')+')' : ''}\`;
+      statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> [Foto \${i+1}/\${files.length}] Mengupload… \${kbOri}KB → \${kbCmp}KB\${isWebP ? ' (WebP' + (saved>0 ? ', hemat '+saved+'%' : '') + ')' : ''}\`;
       const fd = new FormData();
       fd.append('file', compressed);
       fd.append('villa_id', villaId());
