@@ -1769,7 +1769,7 @@ async function renderGallery() {
   } catch (e) { setContent(\`<div class="text-red-500 text-center pt-20">\${e.message}</div>\`); }
 }
 
-function compressImage(file, maxPx = 1280, quality = 0.78) {
+function compressImage(file, maxPx = 1280, quality = 0.65) {
   return new Promise((resolve) => {
     const kb = (file.size / 1024).toFixed(0);
     console.log(\`[compress] START "\${file.name}" type=\${file.type} size=\${kb}KB\`);
