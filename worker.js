@@ -1858,8 +1858,11 @@ async function uploadPhoto() {
       const isWebP = compressed.type === 'image/webp';
       const saved  = Math.round(100 - compressed.size/file.size*100);
       statusEl.innerHTML = \`<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span> [Foto \${i+1}/\${files.length}] Mengupload… \${kbOri}KB → \${kbCmp}KB\${isWebP ? ' (WebP' + (saved>0 ? ', hemat '+saved+'%' : '') + ')' : ''}\`;
+      // Bungkus ulang sebagai Blob baru — hindari stale reference di Android Chrome
+      const buf = await compressed.arrayBuffer();
+      const freshBlob = new Blob([buf], { type: compressed.type });
       const fd = new FormData();
-      fd.append('file', compressed);
+      fd.append('file', freshBlob, compressed.name);
       fd.append('villa_id', villaId());
       fd.append('alt', alt);
       const res = await fetch(getWorkerUrl() + '/upload/github', {
