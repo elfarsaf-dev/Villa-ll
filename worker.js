@@ -1769,34 +1769,33 @@ async function renderGallery() {
   } catch (e) { setContent(\`<div class="text-red-500 text-center pt-20">\${e.message}</div>\`); }
 }
 
-function compressImage(file, maxPx = 1920, quality = 0.82) {
+function compressImage(file, maxPx = 1280, quality = 0.78) {
   return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onerror = () => resolve(file);
-    reader.onload = (ev) => {
-      const img = new Image();
-      img.onerror = () => resolve(file);
-      img.onload = () => {
-        try {
-          let w = img.naturalWidth, h = img.naturalHeight;
-          if (w > maxPx || h > maxPx) {
-            if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
-            else        { w = Math.round(w * maxPx / h); h = maxPx; }
-          }
-          const canvas = document.createElement('canvas');
-          canvas.width = w; canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          canvas.toBlob(blob => {
-            if (blob) return resolve(new File([blob], file.name.replace(/\\.[^.]+$/, '.webp'), { type: 'image/webp' }));
-            canvas.toBlob(b2 => {
-              resolve(b2 ? new File([b2], file.name.replace(/\\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }) : file);
-            }, 'image/jpeg', quality);
-          }, 'image/webp', quality);
-        } catch { resolve(file); }
-      };
-      img.src = ev.target.result;
+    // createObjectURL = pointer saja, tidak copy ke memori — aman untuk file besar di Android
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      try {
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (w > maxPx || h > maxPx) {
+          if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
+          else        { w = Math.round(w * maxPx / h); h = maxPx; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(blob => {
+          if (!blob) return resolve(file);
+          const name = file.name.replace(/\\.[^.]+$/, '.webp');
+          const out  = new File([blob], name, { type: 'image/webp' });
+          // pakai hasil kompresi hanya jika lebih kecil dari aslinya
+          resolve(out.size < file.size ? out : file);
+        }, 'image/webp', quality);
+      } catch { resolve(file); }
     };
-    reader.readAsDataURL(file);
+    img.src = url;
   });
 }
 
